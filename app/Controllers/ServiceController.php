@@ -1,0 +1,157 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Core\Auth;
+use App\Core\Controller;
+use App\Core\Request;
+use App\Core\Response;
+use App\Core\Session;
+use App\Repositories\CategoryRepository;
+use App\Repositories\ServiceRepository;
+
+final class ServiceController extends Controller
+{
+    public function __construct(private readonly ServiceRepository $services = new ServiceRepository())
+    {
+    }
+
+    public function show(Request $request): Response
+    {
+        $category = rawurldecode((string) $request->param('category'));
+        $slug = rawurldecode((string) $request->param('slug'));
+        $service = $this->services->findPublished($category, $slug);
+
+        if (!$service) {
+            return Response::view('pages/errors/404', [
+                'title' => 'Serviço não encontrado',
+                'authUser' => $this->user(),
+                'csrf' => csrf_token(),
+                'menuCategories' => (new CategoryRepository())->menuTree(),
+            ], 'layouts/main', 404);
+        }
+
+        $this->services->incrementViews((int) $service['id']);
+        $service['views_count'] = (int) $service['views_count'] + 1;
+
+        $packages = $this->services->packages((int) $service['id']);
+        $extras = $this->services->extras((int) $service['id']);
+        $gallery = $this->services->images((int) $service['id'], $service['cover_path'] ?: null);
+        $faqs = $this->services->faqs((int) $service['id']);
+        $others = $this->services->otherBySeller((int) $service['user_id'], (int) $service['id']);
+        $favorited = Auth::check() && $this->services->isFavorited((int) Auth::id(), (int) $service['id']);
+
+        $tierLabels = [
+            'basic' => 'Básico',
+            'standard' => 'Intermediário',
+            'premium' => 'Premium',
+        ];
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Service',
+            'name' => $service['title'],
+            'description' => $service['short_description'],
+            'image' => $service['cover_path'] ? media($service['cover_path']) : null,
+            'provider' => [
+                '@type' => 'Person',
+                'name' => $service['display_name'],
+            ],
+            'offers' => [
+                '@type' => 'AggregateOffer',
+                'priceCurrency' => 'BRL',
+                'lowPrice' => number_format(((int) $service['starting_price_cents']) / 100, 2, '.', ''),
+            ],
+            'aggregateRating' => ((int) $service['rating_count'] > 0) ? [
+                '@type' => 'AggregateRating',
+                'ratingValue' => $service['rating_avg'],
+                'reviewCount' => $service['rating_count'],
+            ] : null,
+        ];
+
+        return $this->view('pages/services/show', [
+            'title' => $service['title'],
+            'metaDescription' => $service['short_description'],
+            'ogImage' => $service['cover_path'] ? media($service['cover_path']) : null,
+            'canonicalPath' => '/servico/' . $service['category_slug'] . '/' . $service['slug'],
+            'menuCategories' => (new CategoryRepository())->menuTree(),
+            'service' => $service,
+            'packages' => $packages,
+            'extras' => $extras,
+            'gallery' => $gallery,
+            'faqs' => $faqs,
+            'others' => $others,
+            'languages' => $this->services->sellerLanguages((int) $service['user_id']),
+            'skills' => $this->services->sellerSkills((int) $service['user_id']),
+            'badges' => $this->services->sellerBadges((int) $service['user_id']),
+            'favorited' => $favorited,
+            'tierLabels' => $tierLabels,
+            'jsonLd' => array_filter($schema),
+        ]);
+    }
+
+    public function favorite(Request $request): Response
+    {
+        if (!Auth::check()) {
+            Session::set('intended', $request->path());
+            $this->withError('Entre para salvar este serviço.');
+
+            return $this->redirect('/entrar');
+        }
+
+        $service = $this->locate($request);
+        if (!$service) {
+            return $this->redirect('/');
+        }
+
+        $on = $this->services->toggleFavorite((int) Auth::id(), (int) $service['id']);
+        $this->withSuccess($on ? 'Serviço salvo nos favoritos.' : 'Serviço removido dos favoritos.');
+
+        return $this->redirect('/servico/' . $service['category_slug'] . '/' . $service['slug']);
+    }
+
+    public function hire(Request $request): Response
+    {
+        return $this->guardedAction($request, 'Checkout de pedidos entra na próxima fase. Pacote e adicionais já ficam registrados na interface.');
+    }
+
+    public function contact(Request $request): Response
+    {
+        return $this->guardedAction($request, 'O chat interno entra na fase de mensagens. O profissional já está identificado neste serviço.');
+    }
+
+    public function quote(Request $request): Response
+    {
+        return $this->guardedAction($request, 'A solicitação de orçamento personalizado entra junto com o chat.');
+    }
+
+    private function guardedAction(Request $request, string $message): Response
+    {
+        $service = $this->locate($request);
+        if (!$service) {
+            return $this->redirect('/');
+        }
+
+        $target = '/servico/' . $service['category_slug'] . '/' . $service['slug'];
+        if (!Auth::check()) {
+            Session::set('intended', $target);
+            $this->withError('Entre para continuar.');
+
+            return $this->redirect('/entrar');
+        }
+
+        $this->withSuccess($message);
+
+        return $this->redirect($target);
+    }
+
+    private function locate(Request $request): ?array
+    {
+        return $this->services->findPublished(
+            rawurldecode((string) $request->param('category')),
+            rawurldecode((string) $request->param('slug'))
+        );
+    }
+}

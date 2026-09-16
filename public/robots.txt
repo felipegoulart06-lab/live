@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /conta
+Disallow: /painel
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: /sitemap.xml
