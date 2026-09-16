@@ -1,6 +1,6 @@
 {
-    "name": "nexo/marketplace",
-    "description": "Nexo — marketplace profissional de serviços e freelancers",
+    "name": "cinquentaconto/marketplace",
+    "description": "CinquentaConto — marketplace de serviços e freelancers",
     "type": "project",
     "license": "proprietary",
     "require": {

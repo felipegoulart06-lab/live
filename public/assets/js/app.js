@@ -26,7 +26,7 @@
         });
     });
 
-    window.Nexo = {
+    window.Cinquenta = {
         csrf: csrf,
         toast: function (message) {
             const region = document.getElementById('toast-region') || document.body;
@@ -46,6 +46,7 @@
             return fetch(url, options);
         }
     };
+    window.Nexo = window.Cinquenta;
 
     function formatBRL(cents) {
         return 'R$ ' + (cents / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');

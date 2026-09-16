@@ -37,7 +37,7 @@ final class SettingAdminController extends AdminController
         }
 
         $pairs = [
-            'platform_name' => [trim((string) $request->input('platform_name', 'Nexo')), 'general'],
+            'platform_name' => [trim((string) $request->input('platform_name', 'CinquentaConto')), 'general'],
             'tagline' => [trim((string) $request->input('tagline', '')), 'general'],
             'support_email' => [trim((string) $request->input('support_email', '')), 'general'],
             'support_phone' => [trim((string) $request->input('support_phone', '')), 'general'],

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($title ?? 'Painel') ?> · <?= e(setting('platform_name', 'Nexo')) ?></title>
+    <title><?= e($title ?? 'Painel') ?> · <?= e(setting('platform_name', 'CinquentaConto')) ?></title>
     <meta name="csrf-token" content="<?= e($csrf ?? csrf_token()) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
 <body class="dash-body">
 <div class="dash">
     <aside class="dash-side" id="dash-side">
-        <a class="brand brand--dash" href="<?= e(url('/')) ?>"><?= e(setting('platform_name', 'Nexo')) ?></a>
+        <a class="brand brand--dash" href="<?= e(url('/')) ?>"><?= e(setting('platform_name', 'CinquentaConto')) ?></a>
         <?php $seller = ($user ?? $authUser)?->isSeller(); ?>
         <nav class="side-nav">
             <a href="<?= e(url('/conta')) ?>" class="is-active">Visão geral</a>

@@ -1,8 +1,15 @@
 <footer class="site-footer">
     <div class="footer-grid">
         <div>
-            <p class="brand"><?= e(setting('platform_name', 'Nexo')) ?></p>
-            <p class="muted"><?= e(setting('tagline', 'Profissionais certos, no ritmo do seu projeto.')) ?></p>
+            <p class="brand"><?= e(brand_name()) ?></p>
+            <p class="muted"><?= e(setting('tagline', 'Preço imbatível. Diversidade inigualável.')) ?></p>
+        </div>
+        <div>
+            <p class="footer-heading">Comunidade</p>
+            <a href="<?= e(url('/p/ajuda')) ?>">Suporte</a>
+            <a href="<?= e(url('/p/sobre')) ?>">Sobre</a>
+            <a href="<?= e(url('/p/como-funciona')) ?>">Como funciona</a>
+            <a href="<?= e(url('/criar-conta?intent=seller')) ?>">Estamos contratando</a>
         </div>
         <div>
             <p class="footer-heading">Plataforma</p>
@@ -20,19 +27,10 @@
             <?php endforeach; ?>
         </div>
         <div>
-            <p class="footer-heading">Para profissionais</p>
+            <p class="footer-heading">Parceria</p>
             <a href="<?= e(url('/criar-conta?intent=seller')) ?>">Começar a vender</a>
-            <a href="<?= e(url('/p/como-funciona')) ?>">Como funciona</a>
-        </div>
-        <div>
-            <p class="footer-heading">Newsletter</p>
-            <form class="newsletter" method="post" action="<?= e(url('/buscar')) ?>" onsubmit="event.preventDefault(); window.Nexo && Nexo.toast('Cadastro de newsletter entra na próxima fase.');">
-                <?= csrf_field() ?>
-                <label class="sr-only" for="news-email">E-mail</label>
-                <input id="news-email" type="email" name="email" placeholder="Seu e-mail" required>
-                <button class="btn btn-ink" type="submit">Assinar</button>
-            </form>
+            <a href="<?= e(url('/p/contato')) ?>">Contato</a>
         </div>
     </div>
-    <p class="footer-copy">© <?= date('Y') ?> <?= e(setting('platform_name', 'Nexo')) ?>. Marketplace de serviços profissionais.</p>
+    <p class="footer-copy">© <?= date('Y') ?> <?= e(brand_name()) ?>. Mapa do site · <a href="<?= e(url('/p/termos')) ?>">Termos de uso</a> · <a href="<?= e(url('/p/privacidade')) ?>">Política de privacidade</a> · <a href="<?= e(url('/p/contato')) ?>">Contato</a></p>
 </footer>

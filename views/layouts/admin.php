@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($title ?? 'Admin') ?> · <?= e(setting('platform_name', 'Nexo')) ?></title>
+    <title><?= e($title ?? 'Admin') ?> · <?= e(setting('platform_name', 'CinquentaConto')) ?></title>
     <meta name="csrf-token" content="<?= e($csrf ?? csrf_token()) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
 <body class="dash-body">
 <div class="dash">
     <aside class="dash-side dash-side--admin" id="dash-side">
-        <a class="brand brand--dash" href="<?= e(url('/admin')) ?>"><?= e(setting('platform_name', 'Nexo')) ?> <span>Master</span></a>
+        <a class="brand brand--dash" href="<?= e(url('/admin')) ?>"><?= e(setting('platform_name', 'CinquentaConto')) ?> <span>Master</span></a>
         <nav class="side-nav">
             <a class="<?= nav_is('/admin') ? 'is-active' : '' ?>" href="<?= e(url('/admin')) ?>">Dashboard</a>
             <span class="side-label">Operação</span>

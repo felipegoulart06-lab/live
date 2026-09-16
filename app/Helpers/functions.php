@@ -155,6 +155,28 @@ function nexo_uuid(): string
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
+function brand_name(): string
+{
+    return (string) setting('platform_name', 'CinquentaConto');
+}
+
+function seller_short_name(?string $name): string
+{
+    $name = trim((string) $name);
+    if ($name === '') {
+        return '';
+    }
+    $parts = preg_split('/\s+/u', $name) ?: [];
+    $first = $parts[0] ?? $name;
+    if (count($parts) < 2) {
+        return $first;
+    }
+    $last = $parts[count($parts) - 1];
+    $initial = mb_strtoupper(mb_substr($last, 0, 1));
+
+    return $first . ' ' . $initial . '.';
+}
+
 function nav_is(string $needle): bool
 {
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';

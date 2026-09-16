@@ -141,7 +141,7 @@ foreach ($catalog as $slug => [$name, $desc, $subs]) {
     $featured = $sort <= 6 ? 1 : 0;
     $image = $categoryImages[$slug] ?? null;
     $stmt = $pdo->prepare('INSERT INTO categories (name, slug, icon, image_path, short_description, is_active, is_featured, sort_order, meta_title, meta_description, created_at, updated_at) VALUES (?,?,?,?,?,1,?,?,?,?,?,?)');
-    $stmt->execute([$name, $slug, 'grid', $image, $desc, $featured, $sort, $name . ' | Nexo', $desc, $now, $now]);
+    $stmt->execute([$name, $slug, 'grid', $image, $desc, $featured, $sort, $name . ' | CinquentaConto', $desc, $now, $now]);
     $catId = (int) $pdo->lastInsertId();
     $ss = 1;
     foreach ($subs as $subName) {
@@ -178,8 +178,8 @@ insert($pdo, 'subscription_plans', [
 ]);
 
 $settings = [
-    'platform_name' => ['Nexo', 'general'],
-    'tagline' => ['Profissionais certos, no ritmo do seu projeto.', 'general'],
+    'platform_name' => ['CinquentaConto', 'general'],
+    'tagline' => ['Preço imbatível. Diversidade inigualável.', 'general'],
     'support_email' => ['suporte@localhost', 'general'],
     'support_phone' => ['', 'general'],
     'whatsapp' => ['', 'general'],
@@ -192,8 +192,8 @@ $settings = [
     'upload_max_mb' => ['20', 'security'],
     'maintenance_mode' => ['0', 'general'],
     'registrations_open' => ['1', 'general'],
-    'meta_title' => ['Nexo — marketplace de profissionais', 'seo'],
-    'meta_description' => ['Encontre e contrate profissionais de design, programação, marketing, vídeo e muito mais.', 'seo'],
+    'meta_title' => ['CinquentaConto — transforme seu talento em renda extra', 'seo'],
+    'meta_description' => ['Explore projetos, publique serviços e contrate freelancers com preço acessível.', 'seo'],
     'social_instagram' => ['', 'social'],
     'social_linkedin' => ['', 'social'],
     'ga_id' => ['', 'integrations'],
@@ -213,12 +213,12 @@ insert($pdo, 'commission_rules', [[
 ]]);
 
 insert($pdo, 'pages', [
-    ['title' => 'Sobre', 'slug' => 'sobre', 'content' => '<p>O Nexo conecta empresas e profissionais em um fluxo de trabalho claro: briefing, entrega, revisão e pagamento com registro financeiro real.</p>', 'status' => 'published', 'sort_order' => 1, 'meta_title' => 'Sobre o Nexo', 'meta_description' => 'Como a plataforma funciona.', 'created_at' => $now, 'updated_at' => $now],
+    ['title' => 'Sobre', 'slug' => 'sobre', 'content' => '<p>A CinquentaConto conecta quem precisa de um serviço com quem vive disso: briefing, entrega, revisão e pagamento registrados de verdade.</p>', 'status' => 'published', 'sort_order' => 1, 'meta_title' => 'Sobre a CinquentaConto', 'meta_description' => 'Como a plataforma funciona.', 'created_at' => $now, 'updated_at' => $now],
     ['title' => 'Como funciona', 'slug' => 'como-funciona', 'content' => '<p>Publique um projeto ou contrate um serviço pronto. Converse, alinhe o briefing e acompanhe cada etapa até a conclusão.</p>', 'status' => 'published', 'sort_order' => 2, 'meta_title' => 'Como funciona', 'meta_description' => 'Fluxo de contratação.', 'created_at' => $now, 'updated_at' => $now],
     ['title' => 'Termos', 'slug' => 'termos', 'content' => '<p>Estes termos regulam o uso da plataforma. Personalize este texto no painel administrativo.</p>', 'status' => 'published', 'sort_order' => 3, 'meta_title' => 'Termos de uso', 'meta_description' => 'Termos de uso da plataforma.', 'created_at' => $now, 'updated_at' => $now],
     ['title' => 'Privacidade', 'slug' => 'privacidade', 'content' => '<p>Descreva aqui a política de privacidade e retenção de dados.</p>', 'status' => 'published', 'sort_order' => 4, 'meta_title' => 'Privacidade', 'meta_description' => 'Política de privacidade.', 'created_at' => $now, 'updated_at' => $now],
     ['title' => 'Ajuda', 'slug' => 'ajuda', 'content' => '<p>Central de ajuda inicial. Artigos completos serão gerenciados no módulo de suporte.</p>', 'status' => 'published', 'sort_order' => 5, 'meta_title' => 'Ajuda', 'meta_description' => 'Central de ajuda.', 'created_at' => $now, 'updated_at' => $now],
-    ['title' => 'Contato', 'slug' => 'contato', 'content' => '<p>Fale com o time pelo e-mail de suporte configurado no painel.</p>', 'status' => 'published', 'sort_order' => 6, 'meta_title' => 'Contato', 'meta_description' => 'Fale com o Nexo.', 'created_at' => $now, 'updated_at' => $now],
+    ['title' => 'Contato', 'slug' => 'contato', 'content' => '<p>Fale com o time pelo e-mail de suporte configurado no painel.</p>', 'status' => 'published', 'sort_order' => 6, 'meta_title' => 'Contato', 'meta_description' => 'Fale com a CinquentaConto.', 'created_at' => $now, 'updated_at' => $now],
 ]);
 
 insert($pdo, 'faqs', [
@@ -231,10 +231,10 @@ insert($pdo, 'faqs', [
 
 insert($pdo, 'banners', [[
     'placement' => 'home_hero',
-    'title' => 'Encontre o profissional certo para o próximo passo.',
-    'subtitle' => 'Briefing claro, prazos visíveis e um fluxo de entrega que a empresa e o freelancer acompanham juntos.',
-    'cta_label' => 'Explorar serviços',
-    'cta_url' => '/buscar',
+    'title' => 'Transforme seu talento em renda extra hoje!',
+    'subtitle' => 'Na CinquentaConto, novas oportunidades de trabalho estão à sua espera. Explore projetos da comunidade e transforme suas habilidades em lucro.',
+    'cta_label' => 'Começar agora',
+    'cta_url' => '/criar-conta?intent=seller',
     'image_path' => 'images/hero-studio.jpg',
     'starts_at' => null,
     'ends_at' => null,
@@ -251,7 +251,7 @@ insert($pdo, 'testimonials', [
 ]);
 
 insert($pdo, 'email_templates', [
-    ['slug' => 'welcome', 'subject' => 'Bem-vindo ao Nexo', 'body' => 'Olá {{name}}, sua conta foi criada.', 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
+    ['slug' => 'welcome', 'subject' => 'Bem-vindo à CinquentaConto', 'body' => 'Olá {{name}}, sua conta foi criada.', 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
     ['slug' => 'email_verification', 'subject' => 'Confirme seu e-mail', 'body' => 'Use o link de confirmação enviado pela plataforma.', 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
     ['slug' => 'password_reset', 'subject' => 'Redefinição de senha', 'body' => 'Utilize o token de redefinição para criar uma nova senha.', 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
     ['slug' => 'order_received', 'subject' => 'Novo pedido recebido', 'body' => 'Você recebeu um novo pedido.', 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
@@ -272,16 +272,16 @@ insert($pdo, 'help_articles', [
     ['category_id' => $helpCat, 'title' => 'Como criar sua conta', 'slug' => 'como-criar-sua-conta', 'body' => '<p>Use e-mail válido, senha forte e escolha se deseja contratar ou vender.</p>', 'is_published' => 1, 'created_at' => $now, 'updated_at' => $now],
 ]);
 
-$adminEmail = 'admin@nexo.test';
-$adminPass = password_hash('NexoAdmin!234', PASSWORD_DEFAULT);
+$adminEmail = 'admin@cinquentaconto.test';
+$adminPass = password_hash('CinquentaAdmin!234', PASSWORD_DEFAULT);
 $uuid = sprintf('%s%s-%s-%s-%s-%s%s%s', ...str_split(bin2hex(random_bytes(16)), 4));
 $stmt = $pdo->prepare('INSERT INTO users (uuid, email, password, account_type, status, email_verified_at, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)');
 $stmt->execute([$uuid, $adminEmail, $adminPass, 'both', 'active', $now, $now, $now]);
 $adminId = (int) $pdo->lastInsertId();
 $pdo->prepare('INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?,?,?)')->execute([$adminId, $roleIds['super_admin'], $now]);
 $pdo->prepare('INSERT INTO profiles (user_id, display_name, professional_name, slug, headline, country, is_verified, created_at, updated_at) VALUES (?,?,?,?,?,?,1,?,?)')
-    ->execute([$adminId, 'Equipe Nexo', 'Nexo', 'equipe-nexo', 'Operação da plataforma', 'BR', $now, $now]);
+    ->execute([$adminId, 'Equipe CinquentaConto', 'CinquentaConto', 'equipe-cinquentaconto', 'Operação da plataforma', 'BR', $now, $now]);
 $pdo->prepare('INSERT INTO wallets (user_id, available_cents, pending_cents, reserved_cents, currency, created_at, updated_at) VALUES (?,0,0,0,?,?,?)')
     ->execute([$adminId, 'BRL', $now, $now]);
 
-echo "Seed concluído. Admin: admin@nexo.test / NexoAdmin!234\n";
+echo "Seed concluído. Admin: admin@cinquentaconto.test / CinquentaAdmin!234\n";

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($title ?? setting('platform_name', 'Nexo')) ?></title>
+    <title><?= e($title ?? brand_name()) ?></title>
     <meta name="description" content="<?= e($metaDescription ?? setting('meta_description', '')) ?>">
     <link rel="canonical" href="<?= e(isset($canonicalPath) ? url($canonicalPath) : url($_SERVER['REQUEST_URI'] ?? '/')) ?>">
-    <meta property="og:title" content="<?= e($title ?? 'Nexo') ?>">
+    <meta property="og:title" content="<?= e($title ?? brand_name()) ?>">
     <meta property="og:description" content="<?= e($metaDescription ?? setting('meta_description', '')) ?>">
     <meta property="og:type" content="<?= !empty($ogImage) ? 'product' : 'website' ?>">
     <meta property="og:url" content="<?= e(isset($canonicalPath) ? url($canonicalPath) : url($_SERVER['REQUEST_URI'] ?? '/')) ?>">
@@ -23,7 +23,7 @@
     <?= json_encode([
         '@context' => 'https://schema.org',
         '@type' => 'Organization',
-        'name' => setting('platform_name', 'Nexo'),
+        'name' => brand_name(),
         'url' => env('APP_URL'),
         'description' => setting('meta_description', ''),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>

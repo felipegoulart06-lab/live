@@ -10,7 +10,7 @@
         <fieldset>
             <legend>Geral</legend>
             <div class="form-grid">
-                <label>Nome da plataforma<input name="platform_name" value="<?= e(setting('platform_name', 'Nexo')) ?>" required></label>
+                <label>Nome da plataforma<input name="platform_name" value="<?= e(setting('platform_name', 'CinquentaConto')) ?>" required></label>
                 <label>E-mail de suporte<input name="support_email" value="<?= e(setting('support_email', '')) ?>"></label>
             </div>
             <label>Tagline<input name="tagline" value="<?= e(setting('tagline', '')) ?>"></label>

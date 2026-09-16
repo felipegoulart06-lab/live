@@ -65,7 +65,7 @@ final class AuthController extends Controller
             return $this->redirect('/criar-conta');
         }
 
-        $this->withSuccess('Conta criada. Bem-vindo ao ' . setting('platform_name', 'Nexo') . '.');
+        $this->withSuccess('Conta criada. Bem-vindo à ' . brand_name() . '.');
 
         return $this->redirect('/conta');
     }

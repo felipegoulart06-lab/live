@@ -17,10 +17,15 @@ final class ServiceRepository extends Model
             'featured' => 's.is_featured DESC, s.published_at DESC',
             'best_selling' => 's.orders_count DESC, s.rating_avg DESC',
             'recent' => 's.published_at DESC',
+            'today' => 's.published_at DESC',
             'fast' => 's.min_delivery_days ASC, s.published_at DESC',
             'offers' => 's.has_discount DESC, s.published_at DESC',
             default => 's.rating_avg DESC, s.orders_count DESC',
         };
+
+        $whereToday = $scope === 'today'
+            ? " AND date(s.published_at) = date('now', 'localtime')"
+            : '';
 
         $sql = "SELECT s.id, s.title, s.slug, s.short_description, s.starting_price_cents, s.min_delivery_days,
                        s.rating_avg, s.rating_count, s.orders_count, s.cover_path, s.is_featured,
@@ -30,7 +35,7 @@ final class ServiceRepository extends Model
                 INNER JOIN categories c ON c.id = s.category_id
                 INNER JOIN users u ON u.id = s.user_id
                 INNER JOIN profiles p ON p.user_id = u.id
-                WHERE s.status = 'published' AND u.status = 'active' AND u.deleted_at IS NULL
+                WHERE s.status = 'published' AND u.status = 'active' AND u.deleted_at IS NULL{$whereToday}
                 ORDER BY {$order}
                 LIMIT " . (int) $limit;
 

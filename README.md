@@ -1,4 +1,4 @@
-# Nexo
+# CinquentaConto
 
 Marketplace de profissionais em PHP (MVC). Sem React, sem servidor MySQL: os dados ficam em um arquivo SQLite gerado pelo próprio PHP.
 
@@ -23,8 +23,8 @@ Abra [http://localhost:8080](http://localhost:8080).
 
 Depois do `install.php`, o admin de demonstração é:
 
-- e-mail: `admin@nexo.test`
-- senha: `NexoAdmin!234`
+- e-mail: `admin@cinquentaconto.test`
+- senha: `CinquentaAdmin!234`
 
 Troque essa senha se o ambiente não for só local.
 
