@@ -25,7 +25,7 @@ final class Cache
 
     public static function put(string $key, mixed $value, int $seconds = 300): void
     {
-        $dir = BASE_PATH . '/storage/cache';
+        $dir = Paths::storage() . DIRECTORY_SEPARATOR . 'cache';
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
@@ -59,6 +59,6 @@ final class Cache
 
     private static function path(string $key): string
     {
-        return BASE_PATH . '/storage/cache/' . hash('sha256', $key) . '.json';
+        return Paths::storage() . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . hash('sha256', $key) . '.json';
     }
 }

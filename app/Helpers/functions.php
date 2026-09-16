@@ -34,6 +34,12 @@ function e(mixed $value): string
 function url(string $path = '/'): string
 {
     $base = rtrim((string) env('APP_URL', ''), '/');
+    if ($base === '') {
+        $vercel = (string) env('VERCEL_URL', getenv('VERCEL_URL') ?: '');
+        if ($vercel !== '') {
+            $base = 'https://' . ltrim($vercel, '/');
+        }
+    }
     $path = '/' . ltrim($path, '/');
 
     return $base . ($path === '/' ? '/' : rtrim($path, '/'));

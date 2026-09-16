@@ -29,7 +29,10 @@ final class Session
         ini_set('session.cookie_httponly', '1');
         ini_set('session.gc_maxlifetime', (string) $lifetime);
 
-        $savePath = BASE_PATH . '/storage/sessions';
+        $savePath = Paths::storage() . DIRECTORY_SEPARATOR . 'sessions';
+        if (!is_dir($savePath)) {
+            mkdir($savePath, 0755, true);
+        }
         if (is_dir($savePath) && is_writable($savePath)) {
             session_save_path($savePath);
         }

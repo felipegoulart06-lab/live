@@ -1,0 +1,13 @@
+.env
+.git
+.cursor
+vendor
+storage/nexo.sqlite
+storage/nexo.sqlite-*
+storage/sessions/*
+!storage/sessions/.gitkeep
+storage/cache/*
+!storage/cache/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+*.log

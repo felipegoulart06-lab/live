@@ -28,7 +28,7 @@ final class Logger
 
     private static function write(string $level, string $message, array $context): void
     {
-        $dir = BASE_PATH . '/storage/logs';
+        $dir = Paths::storage() . DIRECTORY_SEPARATOR . 'logs';
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }

@@ -30,6 +30,7 @@ final class Application
         $config = Config::load();
         Database::connect($config->get('database') ?? []);
         SqliteSchema::install(Database::pdo());
+        self::ensureDemoData();
         \App\Services\SettingService::ensureDefaults();
         Session::start($config->get('session'));
 
@@ -50,6 +51,20 @@ final class Application
     public function config(): Config
     {
         return $this->config;
+    }
+
+    private static function ensureDemoData(): void
+    {
+        $count = (int) Database::pdo()->query('SELECT COUNT(*) FROM users')->fetchColumn();
+        if ($count > 0) {
+            return;
+        }
+
+        ob_start();
+        require BASE_PATH . '/database/seed.php';
+        require BASE_PATH . '/database/seed_media.php';
+        require BASE_PATH . '/database/seed_service_detail.php';
+        ob_end_clean();
     }
 
     public function run(): void

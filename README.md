@@ -48,6 +48,25 @@ Login com Google: no painel, **Configurações**, cole Client ID e secret e ativ
 3. Rode `php database/install.php` uma vez (ou só `migrate.php` + seeds, se preferir)
 4. Garanta permissão de escrita em `storage/`
 
+## Vercel
+
+A Vercel não executa PHP como um site estático: sem o runtime, o `index.php` é baixado. Este repositório já inclui `vercel.json` e `api/index.php`.
+
+No projeto da Vercel:
+
+1. **Root Directory** vazio (raiz do repo, **não** `public`)
+2. Framework: Other
+3. Opcional: variável `APP_URL` = `https://seu-dominio.vercel.app`
+
+O SQLite na Vercel vive em `/tmp` (some quando a instância esfria). Para dados permanentes, use um host PHP tradicional.
+
+## Licença
+
+1. Aponte o document root para `public/`
+2. `APP_DEBUG=false` e `APP_URL` com HTTPS
+3. Rode `php database/install.php` uma vez (ou só `migrate.php` + seeds, se preferir)
+4. Garanta permissão de escrita em `storage/`
+
 ## Licença
 
 Uso proprietário do projeto.

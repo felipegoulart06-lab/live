@@ -19,7 +19,11 @@ final class Database
             return self::$pdo;
         }
 
-        $relative = (string) ($config['path'] ?? env('DB_PATH', 'storage/nexo.sqlite'));
+        if (Paths::serverless()) {
+            $relative = Paths::storage() . DIRECTORY_SEPARATOR . 'nexo.sqlite';
+        } else {
+            $relative = (string) ($config['path'] ?? env('DB_PATH', 'storage/nexo.sqlite'));
+        }
         $path = $relative;
         if (!preg_match('#^[A-Za-z]:[\\\\/]#', $relative) && !str_starts_with($relative, '/')) {
             $path = BASE_PATH . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relative);
@@ -37,7 +41,7 @@ final class Database
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
             self::$pdo->exec('PRAGMA foreign_keys = ON');
-            self::$pdo->exec('PRAGMA journal_mode = WAL');
+            self::$pdo->exec(Paths::serverless() ? 'PRAGMA journal_mode = DELETE' : 'PRAGMA journal_mode = WAL');
         } catch (PDOException $e) {
             throw new RuntimeException('Falha ao abrir o arquivo de dados.');
         }
