@@ -51,14 +51,13 @@ final class Request
         $rewrite = $query['__path'] ?? null;
         if (is_string($rewrite) && $rewrite !== '') {
             unset($query['__path']);
-            $uri = '/' . ltrim($rewrite, '/');
+            $uri = '/' . ltrim(rawurldecode(str_replace('%2F', '/', $rewrite)), '/');
         } else {
-            $uri = (string) ($_SERVER['PATH_INFO'] ?? '');
-            if ($uri === '') {
-                $uri = (string) ($_SERVER['ORIG_PATH_INFO'] ?? '');
-            }
-            if ($uri === '') {
-                $uri = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+            $uri = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+            $isScript = (bool) preg_match('#/(?:api/)?index\.php$#', $uri);
+            if ($isScript) {
+                $pathInfo = (string) ($_SERVER['PATH_INFO'] ?? $_SERVER['ORIG_PATH_INFO'] ?? '');
+                $uri = $pathInfo !== '' ? $pathInfo : '/';
             }
         }
 
