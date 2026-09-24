@@ -44,6 +44,20 @@ final class ServiceRepository extends Model
 
     public function findPublished(string $categorySlug, string $slug): ?array
     {
+        $row = $this->publishedRow('s.slug = :slug AND c.slug = :category', [
+            'slug' => $slug,
+            'category' => $categorySlug,
+        ]);
+        if ($row) {
+            return $row;
+        }
+
+        return $this->publishedRow('s.slug = :slug', ['slug' => $slug]);
+    }
+
+    /** @param array<string, mixed> $params */
+    private function publishedRow(string $where, array $params): ?array
+    {
         $row = $this->query(
             "SELECT s.id, s.user_id, s.title, s.slug, s.short_description, s.description, s.cover_path, s.video_url,
                     s.starting_price_cents, s.min_delivery_days, s.orders_count, s.views_count, s.favorites_count,
@@ -60,10 +74,10 @@ final class ServiceRepository extends Model
              LEFT JOIN subcategories sc ON sc.id = s.subcategory_id
              INNER JOIN users u ON u.id = s.user_id
              INNER JOIN profiles p ON p.user_id = u.id
-             WHERE s.slug = :slug AND c.slug = :category AND s.status = 'published'
+             WHERE {$where} AND s.status = 'published'
                AND u.status = 'active' AND u.deleted_at IS NULL
              LIMIT 1",
-            ['slug' => $slug, 'category' => $categorySlug]
+            $params
         )->fetch();
 
         return $row ?: null;

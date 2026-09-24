@@ -21,11 +21,8 @@ final class Request
 
     public static function capture(): self
     {
-        $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-        if ($scriptDir !== '/' && $scriptDir !== '\\' && str_starts_with($uri, $scriptDir)) {
-            $uri = substr($uri, strlen($scriptDir)) ?: '/';
-        }
+        $query = $_GET;
+        $uri = self::resolvePath($query);
 
         $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
         if ($method === 'POST' && isset($_POST['_method'])) {
@@ -45,7 +42,50 @@ final class Request
             }
         }
 
-        return new self($method, '/' . trim($uri, '/'), $_GET, $body, $_SERVER, $_FILES, $_COOKIE);
+        return new self($method, $uri, $query, $body, $_SERVER, $_FILES, $_COOKIE);
+    }
+
+    /** @param array<string, mixed> $query */
+    private static function resolvePath(array &$query): string
+    {
+        $rewrite = $query['__path'] ?? null;
+        if (is_string($rewrite) && $rewrite !== '') {
+            unset($query['__path']);
+            $uri = '/' . ltrim($rewrite, '/');
+        } else {
+            $uri = (string) ($_SERVER['PATH_INFO'] ?? '');
+            if ($uri === '') {
+                $uri = (string) ($_SERVER['ORIG_PATH_INFO'] ?? '');
+            }
+            if ($uri === '') {
+                $uri = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+            }
+        }
+
+        $uri = str_replace('\\', '/', $uri);
+        foreach (['/api/index.php', '/index.php', '/api'] as $prefix) {
+            if ($uri === $prefix) {
+                $uri = '/';
+                break;
+            }
+            if (str_starts_with($uri, $prefix . '/')) {
+                $uri = substr($uri, strlen($prefix)) ?: '/';
+                break;
+            }
+        }
+
+        $scriptDir = str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')));
+        if ($scriptDir !== '/' && $scriptDir !== '.' && $scriptDir !== '\\') {
+            if ($uri === $scriptDir) {
+                $uri = '/';
+            } elseif (str_starts_with($uri, $scriptDir . '/')) {
+                $uri = substr($uri, strlen($scriptDir)) ?: '/';
+            }
+        }
+
+        $uri = '/' . trim($uri, '/');
+
+        return $uri === '/' ? '/' : rtrim($uri, '/');
     }
 
     public function method(): string
