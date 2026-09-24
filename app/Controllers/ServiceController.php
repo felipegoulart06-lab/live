@@ -20,9 +20,7 @@ final class ServiceController extends Controller
 
     public function show(Request $request): Response
     {
-        $category = rawurldecode((string) $request->param('category'));
-        $slug = rawurldecode((string) $request->param('slug'));
-        $service = $this->services->findPublished($category, $slug);
+        $service = $this->locate($request);
 
         if (!$service) {
             return Response::view('pages/errors/404', [
@@ -80,7 +78,7 @@ final class ServiceController extends Controller
             'title' => $service['title'],
             'metaDescription' => $service['short_description'],
             'ogImage' => $service['cover_path'] ? media($service['cover_path']) : null,
-            'canonicalPath' => '/servico/' . $service['category_slug'] . '/' . $service['slug'],
+            'canonicalPath' => service_path($service),
             'menuCategories' => (new CategoryRepository())->menuTree(),
             'service' => $service,
             'packages' => $packages,
@@ -115,7 +113,7 @@ final class ServiceController extends Controller
         $on = $this->services->toggleFavorite((int) Auth::id(), (int) $service['id']);
         $this->withSuccess($on ? 'Serviço salvo nos favoritos.' : 'Serviço removido dos favoritos.');
 
-        return $this->redirect('/servico/' . $service['category_slug'] . '/' . $service['slug']);
+        return $this->redirect(service_path($service));
     }
 
     public function hire(Request $request): Response
@@ -125,7 +123,7 @@ final class ServiceController extends Controller
             return $this->redirect('/');
         }
 
-        $target = '/servico/' . $service['category_slug'] . '/' . $service['slug'];
+        $target = service_path($service);
         if (!Auth::check()) {
             Session::set('intended', $target);
             $this->withError('Entre para contratar horas. Telefone e WhatsApp do criador não são publicados.');
@@ -189,7 +187,7 @@ final class ServiceController extends Controller
             return $this->redirect('/');
         }
 
-        $target = '/servico/' . $service['category_slug'] . '/' . $service['slug'];
+        $target = service_path($service);
         if (!Auth::check()) {
             Session::set('intended', $target);
             $this->withError('Entre para continuar. O contato não sai da plataforma.');
@@ -202,11 +200,25 @@ final class ServiceController extends Controller
         return $this->redirect($target);
     }
 
+    public function handle(Request $request): Response
+    {
+        return match ((string) $request->input('_action', '')) {
+            'favoritar' => $this->favorite($request),
+            'contratar' => $this->hire($request),
+            'falar' => $this->contact($request),
+            'orcamento' => $this->quote($request),
+            default => $this->redirect('/'),
+        };
+    }
+
     private function locate(Request $request): ?array
     {
-        return $this->services->findPublished(
-            rawurldecode((string) $request->param('category')),
-            rawurldecode((string) $request->param('slug'))
-        );
+        $category = rawurldecode((string) ($request->param('category') ?: $request->query('c', '') ?: $request->input('c', '')));
+        $slug = rawurldecode((string) ($request->param('slug') ?: $request->query('s', '') ?: $request->input('s', '')));
+        if ($slug === '' && preg_match('#^/anuncio-(.+)$#', $request->path(), $matches) === 1) {
+            $slug = rawurldecode($matches[1]);
+        }
+
+        return $this->services->findPublished($category, $slug);
     }
 }

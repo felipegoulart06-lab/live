@@ -63,12 +63,26 @@ function media(?string $path): string
     return asset(ltrim($path, '/'));
 }
 
-function service_url(array $service): string
+function service_path(array $service): string
 {
-    $category = (string) ($service['category_slug'] ?? 'geral');
     $slug = (string) ($service['slug'] ?? '');
 
-    return url('/servico/' . rawurlencode($category) . '/' . rawurlencode($slug));
+    return '/anuncio-' . rawurlencode($slug);
+}
+
+function service_url(array $service): string
+{
+    return url(service_path($service));
+}
+
+function page_url(string $slug): string
+{
+    $flat = ['ajuda', 'sobre', 'como-funciona', 'termos', 'privacidade', 'contato', 'suporte'];
+    if (in_array($slug, $flat, true)) {
+        return url('/' . $slug);
+    }
+
+    return url('/pagina?s=' . rawurlencode($slug));
 }
 
 function safe_html(string $html): string

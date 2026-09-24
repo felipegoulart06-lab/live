@@ -47,7 +47,7 @@
                                 <?= csrf_field() ?>
                                 <button class="btn btn-ghost" type="submit"><?= !empty($row['is_featured']) ? 'Tirar destaque' : 'Destacar' ?></button>
                             </form>
-                            <a class="btn btn-ghost" href="<?= e(url('/servico/' . $row['category_slug'] . '/' . $row['slug'])) ?>">Ver</a>
+                            <a class="btn btn-ghost" href="<?= e(service_url($row)) ?>">Ver</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

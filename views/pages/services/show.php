@@ -1,6 +1,6 @@
 <?php
 $s = $service;
-$base = '/servico/' . $s['category_slug'] . '/' . $s['slug'];
+$base = service_path($s);
 $activePackage = $packages[0] ?? null;
 $location = trim((string) ($s['state'] ?? '')) !== '' ? (string) $s['state'] : 'Brasil';
 $memberYears = $s['member_since'] ? max(0, (int) floor((time() - strtotime((string) $s['member_since'])) / 31536000)) : 0;
@@ -35,8 +35,9 @@ $activeHours = $activePackage ? package_hours($activePackage) : 2;
             </div>
         </div>
         <div class="product-toolbar">
-            <form method="post" action="<?= e(url($base . '/favoritar')) ?>">
+            <form method="post" action="<?= e(url($base)) ?>">
                 <?= csrf_field() ?>
+                <input type="hidden" name="_action" value="favoritar">
                 <button class="btn btn-ghost" type="submit"><?= $favorited ? 'Salvo' : 'Favoritar' ?></button>
             </form>
             <button class="btn btn-ghost" type="button" data-share>Compartilhar</button>
@@ -280,8 +281,9 @@ $activeHours = $activePackage ? package_hours($activePackage) : 2;
                     </div>
                 <?php endif; ?>
 
-                <form id="hire-form" method="post" action="<?= e(url($base . '/contratar')) ?>" class="buy-actions">
+                <form id="hire-form" method="post" action="<?= e(url($base)) ?>" class="buy-actions">
                     <?= csrf_field() ?>
+                    <input type="hidden" name="_action" value="contratar">
                     <input type="hidden" name="package_id" data-package-input value="<?= (int) ($activePackage['id'] ?? 0) ?>">
                     <label class="theme-field">Empresa
                         <input type="text" name="company_name" maxlength="120" placeholder="Nome da empresa (opcional)">
@@ -291,8 +293,9 @@ $activeHours = $activePackage ? package_hours($activePackage) : 2;
                     </label>
                     <button class="btn btn-accent btn-block" type="submit">Contratar horas</button>
                 </form>
-                <form method="post" action="<?= e(url($base . '/falar')) ?>">
+                <form method="post" action="<?= e(url($base)) ?>">
                     <?= csrf_field() ?>
+                    <input type="hidden" name="_action" value="falar">
                     <button class="btn btn-ink btn-block" type="submit">Mensagem na plataforma</button>
                 </form>
                 <p class="privacy-note">Sem telefone público. O tema e o combinado ficam só entre empresa e criador aqui dentro.</p>

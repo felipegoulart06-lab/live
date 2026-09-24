@@ -49,6 +49,9 @@ final class Request
     private static function resolvePath(array &$query): string
     {
         $rewrite = $query['__path'] ?? null;
+        if (is_array($rewrite)) {
+            $rewrite = implode('/', array_map('strval', $rewrite));
+        }
         if (is_string($rewrite) && $rewrite !== '') {
             unset($query['__path']);
             $uri = '/' . ltrim(rawurldecode(str_replace('%2F', '/', $rewrite)), '/');

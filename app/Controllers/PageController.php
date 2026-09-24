@@ -14,7 +14,13 @@ final class PageController extends Controller
 {
     public function show(Request $request): Response
     {
-        $slug = (string) $request->param('slug');
+        $slug = (string) ($request->param('slug') ?: $request->query('s', ''));
+        if ($slug === '') {
+            $slug = trim($request->path(), '/');
+        }
+        if ($slug === 'suporte') {
+            $slug = 'ajuda';
+        }
         $page = (new PageRepository())->findPublishedBySlug($slug);
         if (!$page) {
             return Response::view('pages/errors/404', [

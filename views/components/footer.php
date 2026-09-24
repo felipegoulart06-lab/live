@@ -6,9 +6,9 @@
         </div>
         <div>
             <p class="footer-heading">Comunidade</p>
-            <a href="<?= e(url('/p/ajuda')) ?>">Suporte</a>
-            <a href="<?= e(url('/p/sobre')) ?>">Sobre</a>
-            <a href="<?= e(url('/p/como-funciona')) ?>">Como funciona</a>
+            <a href="<?= e(page_url('ajuda')) ?>">Suporte</a>
+            <a href="<?= e(page_url('sobre')) ?>">Sobre</a>
+            <a href="<?= e(page_url('como-funciona')) ?>">Como funciona</a>
             <a href="<?= e(url('/criar-conta?intent=seller')) ?>">Anunciar horas de vídeo</a>
         </div>
         <div>
@@ -23,14 +23,14 @@
                 }
             }
             foreach ($footerPages as $page): ?>
-                <a href="<?= e(url('/p/' . $page['slug'])) ?>"><?= e($page['title']) ?></a>
+                <a href="<?= e(page_url((string) $page['slug'])) ?>"><?= e($page['title']) ?></a>
             <?php endforeach; ?>
         </div>
         <div>
             <p class="footer-heading">Parceria</p>
             <a href="<?= e(url('/criar-conta?intent=seller')) ?>">Sou criador</a>
-            <a href="<?= e(url('/p/contato')) ?>">Contato</a>
+            <a href="<?= e(page_url('contato')) ?>">Contato</a>
         </div>
     </div>
-    <p class="footer-copy">© <?= date('Y') ?> <?= e(brand_name()) ?>. Mapa do site · <a href="<?= e(url('/p/termos')) ?>">Termos de uso</a> · <a href="<?= e(url('/p/privacidade')) ?>">Política de privacidade</a> · <a href="<?= e(url('/p/contato')) ?>">Contato</a></p>
+    <p class="footer-copy">© <?= date('Y') ?> <?= e(brand_name()) ?>. Mapa do site · <a href="<?= e(page_url('termos')) ?>">Termos de uso</a> · <a href="<?= e(page_url('privacidade')) ?>">Política de privacidade</a> · <a href="<?= e(page_url('contato')) ?>">Contato</a></p>
 </footer>
