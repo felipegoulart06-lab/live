@@ -1,6 +1,6 @@
 <section class="auth-card">
     <h1>Criar conta</h1>
-    <p class="muted">Um cadastro. Depois você pode comprar e vender.</p>
+    <p class="muted">Empresa contrata horas de vídeo. Criador anuncia o tempo. Telefone não entra no perfil público.</p>
     <?= \App\Core\View::component('google-login', ['intent' => ($intent ?? 'buyer') === 'seller' ? 'seller' : 'buyer']) ?>
     <form method="post" action="<?= e(url('/criar-conta')) ?>" class="form">
         <?= csrf_field() ?>
@@ -22,8 +22,8 @@
         <fieldset class="intent">
             <legend>Como você quer começar?</legend>
             <?php $intent = old('account_intent', ($intent ?? 'buyer') === 'seller' ? 'seller' : 'buyer'); ?>
-            <label class="choice"><input type="radio" name="account_intent" value="buyer" <?= $intent === 'buyer' ? 'checked' : '' ?>> Contratar profissionais</label>
-            <label class="choice"><input type="radio" name="account_intent" value="seller" <?= $intent === 'seller' ? 'checked' : '' ?>> Vender serviços</label>
+            <label class="choice"><input type="radio" name="account_intent" value="buyer" <?= $intent === 'buyer' ? 'checked' : '' ?>> Contratar horas de vídeo</label>
+            <label class="choice"><input type="radio" name="account_intent" value="seller" <?= $intent === 'seller' ? 'checked' : '' ?>> Anunciar minhas horas</label>
         </fieldset>
         <button class="btn btn-accent btn-block" type="submit">Criar conta</button>
     </form>

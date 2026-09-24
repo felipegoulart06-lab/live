@@ -473,6 +473,31 @@ final class SqliteSchema
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )',
+            'CREATE TABLE IF NOT EXISTS service_reviews (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                service_id INTEGER NOT NULL,
+                author_name TEXT NOT NULL,
+                company_name TEXT,
+                rating INTEGER NOT NULL DEFAULT 5,
+                body TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )',
+            'CREATE TABLE IF NOT EXISTS hire_intents (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                public_code TEXT NOT NULL UNIQUE,
+                buyer_id INTEGER NOT NULL,
+                seller_id INTEGER NOT NULL,
+                service_id INTEGER NOT NULL,
+                package_id INTEGER,
+                hours INTEGER NOT NULL DEFAULT 2,
+                theme TEXT NOT NULL,
+                company_name TEXT,
+                notes TEXT,
+                extras_json TEXT,
+                total_cents INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL DEFAULT \'received\',
+                created_at TEXT NOT NULL
+            )',
             'CREATE TABLE IF NOT EXISTS oauth_accounts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,

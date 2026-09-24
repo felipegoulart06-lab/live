@@ -1,8 +1,8 @@
 <section class="page-wrap">
     <header class="page-head">
         <p class="eyebrow">Busca</p>
-        <h1><?= $query !== '' ? 'Resultados para “' . e($query) . '”' : 'Explorar serviços' ?></h1>
-        <p class="muted"><?= (int) $total ?> serviços encontrados</p>
+        <h1><?= $query !== '' ? 'Resultados para “' . e($query) . '”' : 'Criadores de vídeo para empresas' ?></h1>
+        <p class="muted"><?= (int) $total ?> anúncios de horas encontrados</p>
     </header>
     <form class="filters" method="get" action="<?= e(url('/buscar')) ?>">
         <input type="hidden" name="q" value="<?= e($query) ?>">

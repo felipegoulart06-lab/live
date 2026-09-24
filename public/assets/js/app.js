@@ -70,10 +70,12 @@
         let packagePrice = 0;
         let packageDays = 0;
         let packageRevisions = 0;
+        let packageHours = 2;
         const first = box.querySelector('[data-package].is-active') || box.querySelector('[data-package]');
         if (first) {
             packagePrice = parseInt(first.getAttribute('data-price') || '0', 10);
             packageDays = parseInt(first.getAttribute('data-days') || '0', 10);
+            packageHours = parseInt(first.getAttribute('data-hours') || '2', 10);
             packageRevisions = parseInt(first.getAttribute('data-revisions') || '0', 10);
         }
 
@@ -85,7 +87,7 @@
                 extraDays += parseInt(input.getAttribute('data-days') || '0', 10);
             });
             if (totalEl) totalEl.textContent = formatBRL(packagePrice + extraPrice);
-            if (daysEl) daysEl.textContent = (packageDays + extraDays) + ' dias · ' + packageRevisions + ' revisões';
+            if (daysEl) daysEl.textContent = packageHours + 'h de vídeo · ' + (packageDays + extraDays) + ' dias';
         }
 
         box.querySelectorAll('[data-package]').forEach(function (tab) {
@@ -94,6 +96,7 @@
                 tab.classList.add('is-active');
                 packagePrice = parseInt(tab.getAttribute('data-price') || '0', 10);
                 packageDays = parseInt(tab.getAttribute('data-days') || '0', 10);
+                packageHours = parseInt(tab.getAttribute('data-hours') || '2', 10);
                 packageRevisions = parseInt(tab.getAttribute('data-revisions') || '0', 10);
                 if (packageInput) packageInput.value = tab.getAttribute('data-id') || '';
                 const bodies = box.querySelectorAll('[data-package-body]');

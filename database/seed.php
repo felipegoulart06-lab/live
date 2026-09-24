@@ -25,7 +25,7 @@ function insert($pdo, string $table, array $rows): void
 
 $pdo->exec('PRAGMA foreign_keys = OFF');
 foreach ([
-    'service_faqs', 'service_images', 'service_extras', 'service_packages', 'services',
+    'service_reviews', 'service_faqs', 'service_images', 'service_extras', 'service_packages', 'services', 'hire_intents',
     'user_badges', 'user_skills', 'user_languages', 'user_roles', 'role_permissions',
     'permissions', 'roles', 'settings', 'categories', 'subcategories',
     'languages', 'badges', 'skills', 'subscription_plans', 'pages', 'faqs', 'banners', 'testimonials',
@@ -39,7 +39,7 @@ $pdo->exec('PRAGMA foreign_keys = ON');
 insert($pdo, 'roles', [
     ['name' => 'Visitante', 'slug' => 'visitor', 'description' => 'Papel lógico de não autenticado', 'created_at' => $now, 'updated_at' => $now],
     ['name' => 'Cliente', 'slug' => 'client', 'description' => 'Compra serviços e publica projetos', 'created_at' => $now, 'updated_at' => $now],
-    ['name' => 'Freelancer', 'slug' => 'freelancer', 'description' => 'Vende serviços e envia propostas', 'created_at' => $now, 'updated_at' => $now],
+    ['name' => 'Criador', 'slug' => 'freelancer', 'description' => 'Anuncia horas de vídeo para empresas', 'created_at' => $now, 'updated_at' => $now],
     ['name' => 'Moderador', 'slug' => 'moderator', 'description' => 'Modera conteúdo e disputas', 'created_at' => $now, 'updated_at' => $now],
     ['name' => 'Administrador', 'slug' => 'admin', 'description' => 'Opera o painel administrativo', 'created_at' => $now, 'updated_at' => $now],
     ['name' => 'Super Administrador', 'slug' => 'super_admin', 'description' => 'Acesso total da plataforma', 'created_at' => $now, 'updated_at' => $now],
@@ -87,53 +87,41 @@ foreach ($assign as $role => $slugs) {
 insert($pdo, 'role_permissions', $rp);
 
 $catalog = [
-    'design-grafico' => ['Design Gráfico', 'Identidade, peças e produto visual.', [
-        'Arte para redes sociais', 'Criação de logo', 'Identidade visual', 'Banners', 'Cartões', 'Ilustração', 'UX Design', 'Web Design', 'Apresentações', 'Embalagem',
+    'institucional' => ['Vídeo institucional', 'A empresa no tom certo: apresentação, cultura e posicionamento.', [
+        'Institucional', 'Cultura', 'Onboarding', 'Marca empregadora', 'Bastidores da operação',
     ]],
-    'programacao' => ['Programação', 'Sistemas, sites e automações.', [
-        'Websites', 'Landing Pages', 'PHP', 'WordPress', 'APIs', 'Sistemas', 'CRM', 'ERP', 'Automação', 'Integrações', 'Banco de dados', 'Aplicativos', 'Chatbots', 'Inteligência Artificial',
+    'produto' => ['Vídeo de produto', 'Mostre o que a empresa vende, no ritmo de quem vai comprar.', [
+        'Produto', 'Serviço', 'Unboxing', 'Demonstração', 'Antes e depois',
     ]],
-    'marketing' => ['Marketing', 'Aquisição, conteúdo e mídia.', [
-        'Marketing Digital', 'Google Ads', 'Meta Ads', 'SEO', 'Social Media', 'E-mail Marketing', 'Copywriting', 'Geração de Leads', 'Tráfego pago',
+    'treinamento' => ['Treinamento interno', 'Horas de vídeo para o time: processo, produto e atendimento.', [
+        'Treinamento', 'Processos', 'Atendimento', 'Segurança', 'Onboarding de equipe',
     ]],
-    'video' => ['Vídeo', 'Edição, motion e conteúdo em movimento.', [
-        'Edição', 'UGC', 'Vídeos comerciais', 'Animação', 'Motion', 'YouTube', 'Shorts', 'Reels',
+    'comercial' => ['Comercial e anúncio', 'Peças para site, TV interna e mídia paga.', [
+        'Comercial', 'Anúncio', 'VSL', 'TV corporativa', 'Lançamento',
     ]],
-    'audio-musica' => ['Áudio e Música', 'Trilhas, locução e mixagem.', [
-        'Locução', 'Trilha sonora', 'Mixagem', 'Jingles', 'Podcast',
+    'ugc' => ['UGC e redes', 'Tom de conversa para a empresa usar nas redes, sem contato público.', [
+        'UGC', 'Reels', 'Stories', 'Depoimento', 'Conversa em câmera',
     ]],
-    'redacao' => ['Redação e Tradução', 'Texto com clareza e propósito.', [
-        'Redação', 'Tradução', 'Revisão', 'Roteiro', 'Artigos',
+    'eventos' => ['Eventos e cobertura', 'Horas de captação em evento, loja ou fábrica.', [
+        'Evento', 'Feira', 'Loja', 'Fábrica', 'Convenção',
     ]],
-    'negocios' => ['Negócios e Consultoria', 'Estratégia e operação.', [
-        'Consultoria', 'Negócios', 'Contabilidade', 'Serviços administrativos', 'Assistência virtual', 'Educação',
+    'locucao' => ['Locução', 'Voz para o vídeo que a empresa já tem ou vai gravar.', [
+        'Locução institucional', 'Narração de treino', 'Off para anúncio', 'Áudio para IVR',
     ]],
-    'arquitetura' => ['Arquitetura e Engenharia', 'Projeto, obra e espaços.', [
-        'Arquitetura', 'Engenharia', 'Interiores', 'Plantas', 'Render',
-    ]],
-    'dados' => ['Dados e IA', 'Análise, modelos e automação inteligente.', [
-        'Dados', 'Inteligência Artificial', 'Automação com IA', 'Dashboards', 'Planilhas avançadas',
-    ]],
-    'ecommerce' => ['E-commerce e Tecnologia', 'Lojas, CRM e operação digital.', [
-        'E-commerce', 'Tecnologia', 'CRM', 'ERP', 'Integrações', 'Hospedagem',
-    ]],
-    'fotografia' => ['Fotografia', 'Imagem para marca e produto.', [
-        'Ensaio', 'Produto', 'Eventos', 'Edição de fotos',
+    'edicao' => ['Edição de vídeo', 'Corte, legenda e versão a partir do material da empresa.', [
+        'Edição', 'Legendas', 'Corte vertical', 'Pacote de campanha',
     ]],
 ];
 
 $categoryImages = [
-    'design-grafico' => 'images/cat-design.jpg',
-    'programacao' => 'images/cat-code.jpg',
-    'marketing' => 'images/cat-marketing.jpg',
-    'video' => 'images/cat-video.jpg',
-    'audio-musica' => 'images/cat-audio.jpg',
-    'redacao' => 'images/cat-writing.jpg',
-    'negocios' => 'images/cat-business.jpg',
-    'arquitetura' => 'images/cat-arch.jpg',
-    'dados' => 'images/cat-data.jpg',
-    'ecommerce' => 'images/cat-shop.jpg',
-    'fotografia' => 'images/cat-photo.jpg',
+    'institucional' => 'images/hero-studio.jpg',
+    'produto' => 'images/cat-shop.jpg',
+    'treinamento' => 'images/cat-business.jpg',
+    'comercial' => 'images/cat-marketing.jpg',
+    'ugc' => 'images/cat-video.jpg',
+    'eventos' => 'images/cat-photo.jpg',
+    'locucao' => 'images/cat-audio.jpg',
+    'edicao' => 'images/svc-edit.jpg',
 ];
 
 $sort = 1;
@@ -179,7 +167,7 @@ insert($pdo, 'subscription_plans', [
 
 $settings = [
     'platform_name' => ['CinquentaConto', 'general'],
-    'tagline' => ['Preço imbatível. Diversidade inigualável.', 'general'],
+    'tagline' => ['Horas de vídeo para a sua empresa. Tema definido por quem paga.', 'general'],
     'support_email' => ['suporte@localhost', 'general'],
     'support_phone' => ['', 'general'],
     'whatsapp' => ['', 'general'],
@@ -192,8 +180,8 @@ $settings = [
     'upload_max_mb' => ['20', 'security'],
     'maintenance_mode' => ['0', 'general'],
     'registrations_open' => ['1', 'general'],
-    'meta_title' => ['CinquentaConto — transforme seu talento em renda extra', 'seo'],
-    'meta_description' => ['Explore projetos, publique serviços e contrate freelancers com preço acessível.', 'seo'],
+    'meta_title' => ['CinquentaConto — horas de vídeo para a sua empresa', 'seo'],
+    'meta_description' => ['Empresas encontram criadores para gravar 2, 4, 6 ou 8 horas de vídeo. O tema é de quem paga. Telefone e WhatsApp não ficam expostos.', 'seo'],
     'social_instagram' => ['', 'social'],
     'social_linkedin' => ['', 'social'],
     'ga_id' => ['', 'integrations'],
@@ -213,28 +201,28 @@ insert($pdo, 'commission_rules', [[
 ]]);
 
 insert($pdo, 'pages', [
-    ['title' => 'Sobre', 'slug' => 'sobre', 'content' => '<p>A CinquentaConto conecta quem precisa de um serviço com quem vive disso: briefing, entrega, revisão e pagamento registrados de verdade.</p>', 'status' => 'published', 'sort_order' => 1, 'meta_title' => 'Sobre a CinquentaConto', 'meta_description' => 'Como a plataforma funciona.', 'created_at' => $now, 'updated_at' => $now],
-    ['title' => 'Como funciona', 'slug' => 'como-funciona', 'content' => '<p>Publique um projeto ou contrate um serviço pronto. Converse, alinhe o briefing e acompanhe cada etapa até a conclusão.</p>', 'status' => 'published', 'sort_order' => 2, 'meta_title' => 'Como funciona', 'meta_description' => 'Fluxo de contratação.', 'created_at' => $now, 'updated_at' => $now],
+    ['title' => 'Sobre', 'slug' => 'sobre', 'content' => '<p>A CinquentaConto é o espaço em que empresas encontram pessoas para gravar vídeo sob demanda: 2, 4, 6 ou 8 horas. Quem paga define o tema. Telefone, e-mail e WhatsApp do criador não entram no anúncio público.</p>', 'status' => 'published', 'sort_order' => 1, 'meta_title' => 'Sobre a CinquentaConto', 'meta_description' => 'Horas de vídeo para empresas, sem contato exposto.', 'created_at' => $now, 'updated_at' => $now],
+    ['title' => 'Como funciona', 'slug' => 'como-funciona', 'content' => '<p>A empresa escolhe o criador, compra um bloco de horas e descreve o tema. O criador entrega o vídeo combinado. Mensagens, briefing e arquivos ficam na plataforma — o anúncio não publica telefone.</p>', 'status' => 'published', 'sort_order' => 2, 'meta_title' => 'Como funciona', 'meta_description' => 'Contrate horas de vídeo com o tema da sua empresa.', 'created_at' => $now, 'updated_at' => $now],
     ['title' => 'Termos', 'slug' => 'termos', 'content' => '<p>Estes termos regulam o uso da plataforma. Personalize este texto no painel administrativo.</p>', 'status' => 'published', 'sort_order' => 3, 'meta_title' => 'Termos de uso', 'meta_description' => 'Termos de uso da plataforma.', 'created_at' => $now, 'updated_at' => $now],
-    ['title' => 'Privacidade', 'slug' => 'privacidade', 'content' => '<p>Descreva aqui a política de privacidade e retenção de dados.</p>', 'status' => 'published', 'sort_order' => 4, 'meta_title' => 'Privacidade', 'meta_description' => 'Política de privacidade.', 'created_at' => $now, 'updated_at' => $now],
+    ['title' => 'Privacidade', 'slug' => 'privacidade', 'content' => '<p>O perfil público do criador não exibe telefone, e-mail pessoal nem WhatsApp. O contato comercial acontece dentro da plataforma após o login. Dados de pagamento e briefing ficam restritos ao pedido.</p>', 'status' => 'published', 'sort_order' => 4, 'meta_title' => 'Privacidade', 'meta_description' => 'Contato do criador não é público.', 'created_at' => $now, 'updated_at' => $now],
     ['title' => 'Ajuda', 'slug' => 'ajuda', 'content' => '<p>Central de ajuda inicial. Artigos completos serão gerenciados no módulo de suporte.</p>', 'status' => 'published', 'sort_order' => 5, 'meta_title' => 'Ajuda', 'meta_description' => 'Central de ajuda.', 'created_at' => $now, 'updated_at' => $now],
-    ['title' => 'Contato', 'slug' => 'contato', 'content' => '<p>Fale com o time pelo e-mail de suporte configurado no painel.</p>', 'status' => 'published', 'sort_order' => 6, 'meta_title' => 'Contato', 'meta_description' => 'Fale com a CinquentaConto.', 'created_at' => $now, 'updated_at' => $now],
+    ['title' => 'Contato', 'slug' => 'contato', 'content' => '<p>Fale com o time pelo canal de suporte da plataforma. Não use este espaço para pedir telefone de criadores.</p>', 'status' => 'published', 'sort_order' => 6, 'meta_title' => 'Contato', 'meta_description' => 'Fale com a CinquentaConto.', 'created_at' => $now, 'updated_at' => $now],
 ]);
 
 insert($pdo, 'faqs', [
-    ['question' => 'Como funciona o pagamento?', 'answer' => 'O valor fica registrado na carteira da plataforma até a entrega ser aprovada. Não há saldo fictício: cada movimento corresponde a um evento financeiro real.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 1, 'created_at' => $now, 'updated_at' => $now],
-    ['question' => 'Posso conversar antes de contratar?', 'answer' => 'Sim. Cliente e profissional podem abrir uma conversa, enviar arquivos e alinhar o escopo antes do pedido.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 2, 'created_at' => $now, 'updated_at' => $now],
-    ['question' => 'E se eu precisar de alterações?', 'answer' => 'Cada pacote define revisões incluídas. Solicitações extras ficam registradas na timeline do pedido.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 3, 'created_at' => $now, 'updated_at' => $now],
-    ['question' => 'Como me torno um profissional verificado?', 'answer' => 'Envie documentos no fluxo de verificação. A equipe analisa e, se aprovado, o selo passa a aparecer no perfil e nos serviços.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 4, 'created_at' => $now, 'updated_at' => $now],
-    ['question' => 'Qual a comissão da plataforma?', 'answer' => 'A comissão padrão é configurável. Pode variar por categoria, plano do profissional ou acordo específico.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 5, 'created_at' => $now, 'updated_at' => $now],
+    ['question' => 'O que a empresa está comprando?', 'answer' => 'Blocos de 2, 4, 6 ou 8 horas de vídeo. O tema, o recado e o uso (treino, produto, institucional) são definidos por quem paga.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 1, 'created_at' => $now, 'updated_at' => $now],
+    ['question' => 'Vou ver o telefone do criador?', 'answer' => 'Não. Telefone, WhatsApp e e-mail pessoal não entram no anúncio. A conversa e o briefing ficam na plataforma.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 2, 'created_at' => $now, 'updated_at' => $now],
+    ['question' => 'Posso mudar o tema depois?', 'answer' => 'Sim, pelo pedido, enquanto as horas ainda não foram consumidas. Alterações grandes podem pedir um bloco extra de horas.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 3, 'created_at' => $now, 'updated_at' => $now],
+    ['question' => 'Como o criador anuncia?', 'answer' => 'Abre uma conta, descreve o estilo de vídeo e publica pacotes de horas. O perfil público mostra só nome curto, cidade-estado genérico e portfólio.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 4, 'created_at' => $now, 'updated_at' => $now],
+    ['question' => 'Qual a comissão da plataforma?', 'answer' => 'A comissão padrão é configurável no painel. Pode variar por categoria ou plano do criador.', 'placement' => 'both', 'is_active' => 1, 'sort_order' => 5, 'created_at' => $now, 'updated_at' => $now],
 ]);
 
 insert($pdo, 'banners', [[
     'placement' => 'home_hero',
-    'title' => 'Transforme seu talento em renda extra hoje!',
-    'subtitle' => 'Na CinquentaConto, novas oportunidades de trabalho estão à sua espera. Explore projetos da comunidade e transforme suas habilidades em lucro.',
-    'cta_label' => 'Começar agora',
-    'cta_url' => '/criar-conta?intent=seller',
+    'title' => 'Encontre quem grava o vídeo da sua empresa',
+    'subtitle' => 'Contrate 2, 4, 6 ou 8 horas de vídeo. O tema é definido por quem paga. Telefone e WhatsApp do criador não aparecem no anúncio.',
+    'cta_label' => 'Ver criadores',
+    'cta_url' => '/buscar',
     'image_path' => 'images/hero-studio.jpg',
     'starts_at' => null,
     'ends_at' => null,
@@ -245,9 +233,9 @@ insert($pdo, 'banners', [[
 ]]);
 
 insert($pdo, 'testimonials', [
-    ['author_name' => 'Marina Alves', 'author_role' => 'Diretora de marca', 'quote' => 'O fluxo de briefing e revisão reduziu o vai-e-volta que eu tinha em planilhas e e-mail.', 'rating' => 5, 'avatar_path' => 'images/avatar-marina.jpg', 'is_active' => 1, 'sort_order' => 1, 'created_at' => $now, 'updated_at' => $now],
-    ['author_name' => 'Rafael Moura', 'author_role' => 'Desenvolvedor', 'quote' => 'Consigo mostrar pacotes, adicionais e prazos sem improvisar proposta em PDF.', 'rating' => 5, 'avatar_path' => 'images/avatar-rafael.jpg', 'is_active' => 1, 'sort_order' => 2, 'created_at' => $now, 'updated_at' => $now],
-    ['author_name' => 'Helena Costa', 'author_role' => 'Fundadora', 'quote' => 'Publiquei o projeto e comparei propostas com critérios iguais. Contratei no mesmo dia.', 'rating' => 5, 'avatar_path' => 'images/avatar-helena.jpg', 'is_active' => 1, 'sort_order' => 3, 'created_at' => $now, 'updated_at' => $now],
+    ['author_name' => 'Marina Alves', 'author_role' => 'Diretora de marca', 'quote' => 'Comprei 6 horas e mandei o tema do lançamento. Sem precisar publicar telefone de ninguém.', 'rating' => 5, 'avatar_path' => 'images/avatar-marina.jpg', 'is_active' => 1, 'sort_order' => 1, 'created_at' => $now, 'updated_at' => $now],
+    ['author_name' => 'Rafael Moura', 'author_role' => 'Criador de vídeo', 'quote' => 'Anuncio blocos de horas. A empresa define o assunto; eu gravo. O contato fica na plataforma.', 'rating' => 5, 'avatar_path' => 'images/avatar-rafael.jpg', 'is_active' => 1, 'sort_order' => 2, 'created_at' => $now, 'updated_at' => $now],
+    ['author_name' => 'Helena Costa', 'author_role' => 'Fundadora', 'quote' => 'Usei 4 horas para treinar o time. Escrevi o roteiro interno e recebi o vídeo sem sair da CinquentaConto.', 'rating' => 5, 'avatar_path' => 'images/avatar-helena.jpg', 'is_active' => 1, 'sort_order' => 3, 'created_at' => $now, 'updated_at' => $now],
 ]);
 
 insert($pdo, 'email_templates', [

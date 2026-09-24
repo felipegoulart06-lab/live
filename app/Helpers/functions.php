@@ -73,7 +73,7 @@ function service_url(array $service): string
 
 function safe_html(string $html): string
 {
-    $allowed = '<p><h2><h3><ul><ol><li><strong><em><a><br>';
+    $allowed = '<p><h2><h3><ul><ol><li><strong><em><a><br><blockquote>';
     $clean = strip_tags($html, $allowed);
     $clean = preg_replace('/\son\w+\s*=\s*("|\')[^"\']*\\1/i', '', $clean) ?? $clean;
     $clean = preg_replace('/javascript:/i', '', $clean) ?? $clean;
@@ -175,6 +175,28 @@ function seller_short_name(?string $name): string
     $initial = mb_strtoupper(mb_substr($last, 0, 1));
 
     return $first . ' ' . $initial . '.';
+}
+
+function redact_public_contact(string $text): string
+{
+    $text = preg_replace('/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i', '[contato oculto]', $text) ?? $text;
+    $text = preg_replace('/(?:\+?\d{1,3}[\s.-]*)?(?:\(?\d{2}\)?[\s.-]*)?\d{4,5}[\s.-]?\d{4}/', '[contato oculto]', $text) ?? $text;
+    $text = preg_replace('#https?://t\.me/\S+#i', '[contato oculto]', $text) ?? $text;
+
+    return trim($text);
+}
+
+function package_hours(array $package): int
+{
+    $qty = (int) ($package['quantity'] ?? 0);
+    if ($qty >= 2) {
+        return $qty;
+    }
+    if (preg_match('/(\d+)/', (string) ($package['tier'] ?? $package['name'] ?? ''), $m) === 1) {
+        return max(2, (int) $m[1]);
+    }
+
+    return 2;
 }
 
 function nav_is(string $needle): bool

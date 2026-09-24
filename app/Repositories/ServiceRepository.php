@@ -76,7 +76,7 @@ final class ServiceRepository extends Model
             "SELECT id, tier, name, description, price_cents, delivery_days, revisions, quantity, benefits
              FROM service_packages
              WHERE service_id = :id AND is_active = 1
-             ORDER BY CASE tier WHEN 'basic' THEN 1 WHEN 'standard' THEN 2 WHEN 'premium' THEN 3 ELSE 4 END",
+             ORDER BY quantity ASC, price_cents ASC",
             ['id' => $serviceId]
         )->fetchAll();
 
@@ -128,6 +128,18 @@ final class ServiceRepository extends Model
     {
         return $this->query(
             'SELECT question, answer FROM service_faqs WHERE service_id = :id ORDER BY sort_order ASC',
+            ['id' => $serviceId]
+        )->fetchAll();
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function reviews(int $serviceId): array
+    {
+        return $this->query(
+            'SELECT author_name, company_name, rating, body, created_at
+             FROM service_reviews
+             WHERE service_id = :id
+             ORDER BY created_at DESC, id DESC',
             ['id' => $serviceId]
         )->fetchAll();
     }
@@ -235,5 +247,35 @@ final class ServiceRepository extends Model
         $this->query('UPDATE services SET favorites_count = favorites_count + 1 WHERE id = :id', ['id' => $serviceId]);
 
         return true;
+    }
+
+    /** @param array<string, mixed> $service */
+    public function saveHireIntent(int $buyerId, array $service, ?array $package, string $theme, string $company, string $notes, array $extraIds): string
+    {
+        $hours = $package ? package_hours($package) : 2;
+        $total = (int) ($package['price_cents'] ?? $service['starting_price_cents'] ?? 0);
+        $code = 'HR-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+
+        $stmt = $this->db()->prepare(
+            'INSERT INTO hire_intents (public_code, buyer_id, seller_id, service_id, package_id, hours, theme, company_name, notes, extras_json, total_cents, status, created_at)
+             VALUES (:public_code, :buyer_id, :seller_id, :service_id, :package_id, :hours, :theme, :company_name, :notes, :extras_json, :total_cents, :status, :created_at)'
+        );
+        $stmt->execute([
+            'public_code' => $code,
+            'buyer_id' => $buyerId,
+            'seller_id' => (int) $service['user_id'],
+            'service_id' => (int) $service['id'],
+            'package_id' => $package ? (int) $package['id'] : null,
+            'hours' => $hours,
+            'theme' => $theme,
+            'company_name' => $company !== '' ? $company : null,
+            'notes' => $notes !== '' ? $notes : null,
+            'extras_json' => json_encode(array_values($extraIds), JSON_UNESCAPED_UNICODE),
+            'total_cents' => $total,
+            'status' => 'received',
+            'created_at' => now(),
+        ]);
+
+        return $code;
     }
 }

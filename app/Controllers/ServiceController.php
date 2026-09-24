@@ -40,13 +40,18 @@ final class ServiceController extends Controller
         $extras = $this->services->extras((int) $service['id']);
         $gallery = $this->services->images((int) $service['id'], $service['cover_path'] ?: null);
         $faqs = $this->services->faqs((int) $service['id']);
+        $reviews = $this->services->reviews((int) $service['id']);
         $others = $this->services->otherBySeller((int) $service['user_id'], (int) $service['id']);
         $favorited = Auth::check() && $this->services->isFavorited((int) Auth::id(), (int) $service['id']);
 
         $tierLabels = [
-            'basic' => 'Básico',
-            'standard' => 'Intermediário',
-            'premium' => 'Premium',
+            'hours_2' => '2h',
+            'hours_4' => '4h',
+            'hours_6' => '6h',
+            'hours_8' => '8h',
+            'basic' => '2h',
+            'standard' => '4h',
+            'premium' => '8h',
         ];
 
         $schema = [
@@ -57,7 +62,7 @@ final class ServiceController extends Controller
             'image' => $service['cover_path'] ? media($service['cover_path']) : null,
             'provider' => [
                 '@type' => 'Person',
-                'name' => $service['display_name'],
+                'name' => seller_short_name((string) $service['display_name']),
             ],
             'offers' => [
                 '@type' => 'AggregateOffer',
@@ -82,6 +87,7 @@ final class ServiceController extends Controller
             'extras' => $extras,
             'gallery' => $gallery,
             'faqs' => $faqs,
+            'reviews' => $reviews,
             'others' => $others,
             'languages' => $this->services->sellerLanguages((int) $service['user_id']),
             'skills' => $this->services->sellerSkills((int) $service['user_id']),
@@ -114,17 +120,66 @@ final class ServiceController extends Controller
 
     public function hire(Request $request): Response
     {
-        return $this->guardedAction($request, 'Checkout de pedidos entra na próxima fase. Pacote e adicionais já ficam registrados na interface.');
+        $service = $this->locate($request);
+        if (!$service) {
+            return $this->redirect('/');
+        }
+
+        $target = '/servico/' . $service['category_slug'] . '/' . $service['slug'];
+        if (!Auth::check()) {
+            Session::set('intended', $target);
+            $this->withError('Entre para contratar horas. Telefone e WhatsApp do criador não são publicados.');
+
+            return $this->redirect('/entrar');
+        }
+
+        $theme = trim((string) $request->input('theme', ''));
+        if (mb_strlen($theme) < 8) {
+            $this->withError('Descreva o tema do vídeo. Quem paga define o assunto; o criador não publica telefone.');
+
+            return $this->redirect($target);
+        }
+
+        $packages = $this->services->packages((int) $service['id']);
+        $packageId = (int) $request->input('package_id', 0);
+        $package = null;
+        foreach ($packages as $pkg) {
+            if ((int) $pkg['id'] === $packageId) {
+                $package = $pkg;
+                break;
+            }
+        }
+        if ($package === null && $packages !== []) {
+            $package = $packages[0];
+        }
+
+        $extras = $request->input('extras');
+        $extraIds = is_array($extras) ? array_map('intval', $extras) : [];
+
+        $code = $this->services->saveHireIntent(
+            (int) Auth::id(),
+            $service,
+            $package,
+            $theme,
+            trim((string) $request->input('company_name', '')),
+            trim((string) $request->input('notes', '')),
+            $extraIds
+        );
+
+        $hours = $package ? package_hours($package) : 2;
+        $this->withSuccess('Pedido ' . $code . ' registrado: ' . $hours . 'h de vídeo com o tema que a empresa definiu. O contato segue só pela plataforma.');
+
+        return $this->redirect($target);
     }
 
     public function contact(Request $request): Response
     {
-        return $this->guardedAction($request, 'O chat interno entra na fase de mensagens. O profissional já está identificado neste serviço.');
+        return $this->guardedAction($request, 'A mensagem fica na plataforma. Telefone, e-mail e WhatsApp do criador não são divulgados no anúncio.');
     }
 
     public function quote(Request $request): Response
     {
-        return $this->guardedAction($request, 'A solicitação de orçamento personalizado entra junto com o chat.');
+        return $this->guardedAction($request, 'Peça mais horas no mesmo pedido. O combinado continua interno, sem telefone público.');
     }
 
     private function guardedAction(Request $request, string $message): Response
@@ -137,7 +192,7 @@ final class ServiceController extends Controller
         $target = '/servico/' . $service['category_slug'] . '/' . $service['slug'];
         if (!Auth::check()) {
             Session::set('intended', $target);
-            $this->withError('Entre para continuar.');
+            $this->withError('Entre para continuar. O contato não sai da plataforma.');
 
             return $this->redirect('/entrar');
         }

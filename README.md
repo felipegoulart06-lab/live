@@ -1,6 +1,6 @@
 # CinquentaConto
 
-Marketplace de profissionais em PHP (MVC). Sem React, sem servidor MySQL: os dados ficam em um arquivo SQLite gerado pelo próprio PHP.
+Marketplace em PHP para empresas contratarem **horas de vídeo** (2, 4, 6 ou 8) com criadores. O tema é definido por quem paga. Telefone e WhatsApp não ficam no anúncio público.
 
 ## Requisitos
 

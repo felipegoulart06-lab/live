@@ -15,12 +15,12 @@ if ($cats === []) {
         <button class="icon-btn only-mobile" data-drawer="#mobile-drawer" type="button" aria-label="Abrir menu">☰</button>
         <a class="brand" href="<?= e(url('/')) ?>"><?= e(brand_name()) ?></a>
         <form class="header-search" action="<?= e(url('/buscar')) ?>" method="get" role="search">
-            <label class="sr-only" for="q">O que você precisa hoje?</label>
-            <input id="q" name="q" type="search" placeholder="O que você precisa hoje?" value="<?= e($_GET['q'] ?? '') ?>" autocomplete="off">
+            <label class="sr-only" for="q">Buscar horas de vídeo</label>
+            <input id="q" name="q" type="search" placeholder="Horas de vídeo para a sua empresa" value="<?= e($_GET['q'] ?? '') ?>" autocomplete="off">
             <button class="btn btn-ink" type="submit">Buscar</button>
         </form>
         <nav class="header-actions">
-            <a class="text-link" href="<?= e(url('/buscar')) ?>">Explorar serviços</a>
+            <a class="text-link" href="<?= e(url('/buscar')) ?>">Encontrar criadores</a>
             <?php if ($authUser): ?>
                 <a class="btn btn-ghost" href="<?= e(url('/conta')) ?>">Painel</a>
                 <?php if ($authUser->isStaff()): ?>
@@ -28,7 +28,7 @@ if ($cats === []) {
                 <?php endif; ?>
             <?php else: ?>
                 <a class="btn btn-ghost" href="<?= e(url('/entrar')) ?>">Entrar</a>
-                <a class="btn btn-accent" href="<?= e(url('/criar-conta?intent=seller')) ?>">Quero vender</a>
+                <a class="btn btn-accent" href="<?= e(url('/criar-conta?intent=seller')) ?>">Anunciar horas</a>
             <?php endif; ?>
         </nav>
     </div>

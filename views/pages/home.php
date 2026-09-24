@@ -1,15 +1,21 @@
 <?php
 $hero = $banners[0] ?? null;
+$brand = brand_name();
 ?>
-<section class="hero hero--seller">
+<section class="hero hero--company">
     <div class="hero-copy">
-        <p class="eyebrow">Para quem vende</p>
-        <h1><?= e($hero['title'] ?? 'Transforme seu talento em renda extra hoje!') ?></h1>
-        <p class="lead"><?= e($hero['subtitle'] ?? 'Na ' . brand_name() . ', novas oportunidades de trabalho estão à sua espera. Explore projetos da comunidade e transforme suas habilidades em lucro.') ?></p>
+        <p class="eyebrow">Para empresas</p>
+        <h1><?= e($hero['title'] ?? 'Encontre quem grava o vídeo da sua empresa') ?></h1>
+        <p class="lead"><?= e($hero['subtitle'] ?? 'Na ' . $brand . ', a empresa contrata 2, 4, 6 ou 8 horas de vídeo. O tema é definido por quem paga. Telefone e WhatsApp do criador não aparecem no anúncio.') ?></p>
         <div class="hero-actions">
-            <a class="btn btn-accent" href="<?= e(url($hero['cta_url'] ?? '/buscar')) ?>"><?= e($hero['cta_label'] ?? 'Começar agora') ?></a>
-            <a class="btn btn-ghost" href="<?= e(url('/criar-conta?intent=seller')) ?>">Quero vender</a>
+            <a class="btn btn-accent" href="<?= e(url($hero['cta_url'] ?? '/buscar')) ?>"><?= e($hero['cta_label'] ?? 'Ver criadores') ?></a>
+            <a class="btn btn-ghost" href="<?= e(url('/criar-conta?intent=seller')) ?>">Anunciar horas</a>
         </div>
+        <ul class="trust-pills">
+            <li>Pacotes de 2, 4, 6 e 8 horas</li>
+            <li>Tema definido pela empresa</li>
+            <li>Contato só pela plataforma</li>
+        </ul>
     </div>
     <div class="hero-visual">
         <?php if (!empty($hero['image_path'])): ?>
@@ -18,9 +24,32 @@ $hero = $banners[0] ?? null;
     </div>
 </section>
 
+<section class="section how-section">
+    <div class="section-head">
+        <h2>Como a empresa contrata</h2>
+    </div>
+    <div class="how-grid">
+        <article class="how-card">
+            <span>1</span>
+            <h3>Escolha o criador</h3>
+            <p>Veja o estilo, a nota e o preço da hora. O perfil público não mostra telefone, e-mail nem WhatsApp.</p>
+        </article>
+        <article class="how-card">
+            <span>2</span>
+            <h3>Compre as horas</h3>
+            <p>2, 4, 6 ou 8 horas de vídeo. Quem paga define o tema, o roteiro e o recado da empresa.</p>
+        </article>
+        <article class="how-card">
+            <span>3</span>
+            <h3>Combine aqui dentro</h3>
+            <p>Briefing, arquivos e entrega ficam na plataforma. Nada de contato pessoal exposto no anúncio.</p>
+        </article>
+    </div>
+</section>
+
 <section class="section">
     <div class="section-head">
-        <h2>Em destaque</h2>
+        <h2>Criadores em destaque</h2>
         <a href="<?= e(url('/buscar')) ?>">Ver todos</a>
     </div>
     <?php if ($featured): ?>
@@ -30,13 +59,13 @@ $hero = $banners[0] ?? null;
             <?php endforeach; ?>
         </div>
     <?php else: ?>
-        <?= \App\Core\View::component('empty', ['message' => 'Ainda não há serviços em destaque.']) ?>
+        <?= \App\Core\View::component('empty', ['message' => 'Ainda não há anúncios em destaque.']) ?>
     <?php endif; ?>
 </section>
 
 <section class="section">
     <div class="section-head">
-        <h2>Serviços de freelancers mais vendidos</h2>
+        <h2>Horas de vídeo mais contratadas</h2>
         <a href="<?= e(url('/buscar')) ?>">Ver todos</a>
     </div>
     <?php if ($bestSelling): ?>
@@ -46,13 +75,13 @@ $hero = $banners[0] ?? null;
             <?php endforeach; ?>
         </div>
     <?php else: ?>
-        <?= \App\Core\View::component('empty', ['message' => 'Os mais vendidos aparecem quando houver pedidos.']) ?>
+        <?= \App\Core\View::component('empty', ['message' => 'Os mais contratados aparecem quando houver pedidos.']) ?>
     <?php endif; ?>
 </section>
 
 <section class="section">
     <div class="section-head">
-        <h2>Serviços de freelancers publicados hoje</h2>
+        <h2>Novos anúncios de horas</h2>
         <a href="<?= e(url('/buscar')) ?>">Ver todos</a>
     </div>
     <?php if ($recentServices): ?>
@@ -68,7 +97,7 @@ $hero = $banners[0] ?? null;
 
 <section class="section">
     <div class="section-head">
-        <h2>Contrate serviços de freelancers especializados para o seu negócio</h2>
+        <h2>Vídeo feito para a sua empresa</h2>
         <a href="<?= e(url('/buscar')) ?>">Explorar</a>
     </div>
     <?php if ($specialized): ?>
@@ -84,8 +113,8 @@ $hero = $banners[0] ?? null;
 
 <section class="section">
     <div class="section-head">
-        <h2>Categorias populares</h2>
-        <a href="<?= e(url('/buscar')) ?>">Ver todas</a>
+        <h2>Tipos de vídeo</h2>
+        <a href="<?= e(url('/buscar')) ?>">Ver todos</a>
     </div>
     <div class="cat-grid">
         <?php foreach ($popularCategories as $cat): ?>

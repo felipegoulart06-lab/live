@@ -25,3 +25,4 @@ desktop.ini
 *.swp
 .phpunit.result.cache
 .php-cs-fixer.cache
+.vercel

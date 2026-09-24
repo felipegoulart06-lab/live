@@ -12,19 +12,20 @@ $isNew = $orders === 0;
             <img src="<?= e(media($service['cover_path'])) ?>" alt="<?= e($service['title']) ?>" width="480" height="280" loading="lazy">
         <?php endif; ?>
         <?php if ($isNew): ?><span class="badge-new">Novo</span><?php endif; ?>
+        <span class="badge-hours">a partir de 2h</span>
     </a>
     <div class="card-body">
         <p class="seller-line"><?= e(seller_short_name($service['display_name'] ?? '')) ?></p>
         <h3><a href="<?= e($href) ?>"><?= e($service['title'] ?? '') ?></a></h3>
-        <p class="price-row"><strong><?= money($service['starting_price_cents'] ?? 0) ?></strong></p>
+        <p class="price-row"><span>2h</span><strong><?= money($service['starting_price_cents'] ?? 0) ?></strong></p>
         <p class="card-stats">
             <?php if ($isNew): ?>
                 <span>Novo</span>
             <?php else: ?>
-                <span><?= $orders ?></span>
+                <span><?= $orders ?> contratos</span>
                 <span><?= number_format($rating, 2, '.', '') ?></span>
             <?php endif; ?>
-            <span><?= $days ?>d</span>
+            <span><?= $days ?>d entrega</span>
         </p>
     </div>
 </article>

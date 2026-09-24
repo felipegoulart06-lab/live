@@ -22,8 +22,8 @@ final class HomeController extends Controller
         $pages = new PageRepository();
 
         return $this->view('pages/home', [
-            'title' => setting('meta_title', brand_name() . ' — transforme seu talento em renda extra'),
-            'metaDescription' => setting('meta_description', 'Explore projetos, publique serviços e contrate freelancers com preço acessível.'),
+            'title' => setting('meta_title', brand_name() . ' — horas de vídeo para a sua empresa'),
+            'metaDescription' => setting('meta_description', 'Empresas encontram criadores para gravar 2, 4, 6 ou 8 horas de vídeo. O tema é definido por quem paga. Telefone e WhatsApp não ficam expostos.'),
             'menuCategories' => $categories->menuTree(),
             'popularCategories' => $categories->popular(8),
             'featured' => $services->homeList('featured', 10),
