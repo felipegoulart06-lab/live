@@ -6,130 +6,187 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Core\Controller;
+use App\Core\Db;
+use App\Core\Logger;
+use App\Core\RateLimiter;
 use App\Core\Request;
 use App\Core\Response;
-use App\Repositories\CategoryRepository;
-use App\Services\AuthService;
+use App\Core\Session;
+use App\Services\Accounts;
+use App\Services\Audit;
+use App\Services\MailService;
 
 final class AuthController extends Controller
 {
-    public function __construct(private readonly AuthService $auth = new AuthService())
-    {
-    }
+    private const LABELS = [
+        'display_name' => 'Nome',
+        'email' => 'E-mail',
+        'password' => 'Senha',
+        'company_name' => 'Nome da empresa',
+        'role' => 'Tipo de conta',
+        'terms' => 'Termos de uso',
+    ];
 
-    public function showLogin(Request $request): Response
+    public function loginForm(Request $request): Response
     {
-        return $this->authView('pages/auth/login', [
-            'title' => 'Entrar',
-        ]);
+        return $this->view('auth/login', ['title' => 'Entrar'], 'layouts/auth');
     }
 
     public function login(Request $request): Response
     {
-        $result = $this->auth->attempt($request->all(), $request);
-        if (!($result['ok'] ?? false)) {
-            $this->withErrors($result['errors'] ?? [], ['email' => $request->input('email')]);
-            if (isset($result['message'])) {
-                $this->withError($result['message']);
-            }
+        $email = mb_strtolower(trim((string) $request->input('email', '')));
+        $password = (string) $request->input('password', '');
+        $key = 'login:' . $request->ip() . ':' . $email;
 
-            return $this->redirect('/entrar');
+        if (RateLimiter::tooManyAttempts($key, (int) config('security.login_max', 8), (int) config('security.window', 300))) {
+            Logger::security('Login bloqueado por excesso de tentativas', ['email' => $email, 'ip' => $request->ip()]);
+            $this->error('Muitas tentativas. Aguarde alguns minutos e tente de novo.');
+
+            return $this->redirect('/login');
         }
 
-        $intended = \App\Core\Session::get('intended');
-        \App\Core\Session::forget('intended');
-        if (is_string($intended) && str_starts_with($intended, '/') && !str_starts_with($intended, '//')) {
-            return $this->redirect($intended);
+        $user = Db::first('SELECT id, password_hash, status, blocked_reason, role FROM users WHERE email = :e AND deleted_at IS NULL', ['e' => $email]);
+        if (!$user || !password_verify($password, (string) $user['password_hash'])) {
+            Session::flash('old', ['email' => $email]);
+            $this->error('E-mail ou senha incorretos.');
+
+            return $this->redirect('/login');
+        }
+        if ($user['status'] !== 'active') {
+            $this->error('Sua conta está bloqueada.' . ($user['blocked_reason'] ? ' Motivo: ' . $user['blocked_reason'] : '') . ' Fale com o suporte.');
+
+            return $this->redirect('/login');
         }
 
-        return $this->redirect('/conta');
+        RateLimiter::clear($key);
+        if (password_needs_rehash((string) $user['password_hash'], PASSWORD_DEFAULT)) {
+            Db::update('users', ['password_hash' => password_hash($password, PASSWORD_DEFAULT)], ['id' => (int) $user['id']]);
+        }
+        Db::update('users', ['last_login_at' => now(), 'last_login_ip' => $request->ip()], ['id' => (int) $user['id']]);
+        Auth::login((int) $user['id']);
+        Audit::activity((int) $user['id'], 'login', 'Entrou na plataforma');
+
+        $intended = (string) Session::pull('intended', '');
+        $home = Auth::user()?->homePath() ?? '/';
+        $allowedIntended = $intended !== '' && str_starts_with($intended, '/') && !str_starts_with($intended, '//')
+            && (!str_starts_with($intended, '/admin') || $user['role'] === 'admin');
+
+        return $this->redirect($allowedIntended ? $intended : $home);
     }
 
-    public function showRegister(Request $request): Response
+    public function registerForm(Request $request): Response
     {
-        return $this->authView('pages/auth/register', [
-            'title' => 'Criar conta',
-            'intent' => $request->query('intent', 'buyer'),
-        ]);
+        $role = in_array($request->query('tipo'), ['criador', 'empresa'], true) ? (string) $request->query('tipo') : 'empresa';
+
+        return $this->view('auth/register', ['title' => 'Criar conta', 'role' => $role], 'layouts/auth');
     }
 
     public function register(Request $request): Response
     {
-        $result = $this->auth->register($request->all(), $request);
-        if (!($result['ok'] ?? false)) {
-            $this->withErrors($result['errors'] ?? [], $request->all());
-            if (isset($result['message'])) {
-                $this->withError($result['message']);
-            }
+        $this->throttle('register:' . $request->ip(), 6, 3600);
 
-            return $this->redirect('/criar-conta');
+        $data = $request->all();
+        $rules = [
+            'role' => 'required|in:criador,empresa',
+            'display_name' => 'required|min:3|max:80',
+            'email' => 'required|email',
+            'password' => 'required|password|confirmed|max:120',
+            'terms' => 'required',
+        ];
+        if (($data['role'] ?? '') === 'empresa') {
+            $rules['company_name'] = 'required|min:2|max:120';
+        }
+        if ($response = $this->invalid($data, $rules, self::LABELS, '/cadastro')) {
+            return $response;
+        }
+        if (Accounts::emailTaken((string) $data['email'])) {
+            Session::flash('errors', ['email' => ['Este e-mail já tem cadastro. Entre ou recupere a senha.']]);
+            Session::flash('old', ['display_name' => $data['display_name'], 'email' => $data['email'], 'company_name' => $data['company_name'] ?? '', 'role' => $data['role']]);
+
+            return $this->redirect('/cadastro?tipo=' . $data['role']);
         }
 
-        $this->withSuccess('Conta criada. Bem-vindo à ' . brand_name() . '.');
+        $role = $data['role'] === 'criador' ? 'creator' : 'company';
+        $userId = Accounts::create($role, [
+            'display_name' => $data['display_name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'company_name' => $data['company_name'] ?? null,
+            'responsible_name' => $data['display_name'],
+        ]);
+        Audit::activity($userId, 'register', $role === 'creator' ? 'Criou conta de criador' : 'Criou conta de empresa');
+        Auth::login($userId);
+        $this->success($role === 'creator' ? 'Conta criada. Complete o perfil e crie o seu primeiro anúncio.' : 'Conta criada. Encontre um criador e envie a sua primeira solicitação.');
 
-        return $this->redirect('/conta');
+        return $this->redirect($role === 'creator' ? '/painel' : '/empresa');
     }
 
     public function logout(Request $request): Response
     {
+        $id = Auth::id();
+        if ($id) {
+            Audit::activity($id, 'logout', 'Saiu da plataforma');
+        }
         Auth::logout();
-        $this->withSuccess('Você saiu da conta.');
 
         return $this->redirect('/');
     }
 
-    public function showForgot(Request $request): Response
+    public function forgotForm(Request $request): Response
     {
-        return $this->authView('pages/auth/forgot', ['title' => 'Recuperar senha']);
+        return $this->view('auth/forgot', ['title' => 'Recuperar senha'], 'layouts/auth');
     }
 
     public function forgot(Request $request): Response
     {
-        $result = $this->auth->requestPasswordReset((string) $request->input('email', ''));
-        $this->withSuccess($result['message']);
+        $this->throttle('forgot:' . $request->ip(), 5, 900);
+        $email = mb_strtolower(trim((string) $request->input('email', '')));
+        if ($response = $this->invalid(['email' => $email], ['email' => 'required|email'], self::LABELS, '/recuperar-senha')) {
+            return $response;
+        }
 
-        return $this->redirect('/esqueci-senha');
+        $userId = Db::value("SELECT id FROM users WHERE email = :e AND status = 'active' AND deleted_at IS NULL", ['e' => $email]);
+        if ($userId) {
+            $token = Accounts::createToken((int) $userId, 'password_reset', 60);
+            MailService::queue('password_reset', $email, ['url' => url('/recuperar-senha/' . $token)]);
+            Audit::activity((int) $userId, 'password_reset_requested', 'Pediu redefinição de senha');
+        }
+        $this->success('Se o e-mail estiver cadastrado, enviamos um link para criar uma nova senha. Ele vale por 60 minutos.');
+
+        return $this->redirect('/recuperar-senha');
     }
 
-    public function showReset(Request $request): Response
+    public function resetForm(Request $request): Response
     {
-        return $this->authView('pages/auth/reset', [
-            'title' => 'Redefinir senha',
-            'token' => (string) $request->param('token'),
-        ]);
+        $token = (string) $request->param('token');
+        $valid = Accounts::findToken($token, 'password_reset') !== null;
+
+        return $this->view('auth/reset', ['title' => 'Nova senha', 'token' => $token, 'valid' => $valid], 'layouts/auth');
     }
 
     public function reset(Request $request): Response
     {
+        $this->throttle('reset:' . $request->ip(), 10, 900);
         $token = (string) $request->param('token');
-        $result = $this->auth->resetPassword($token, $request->all());
-        if (!($result['ok'] ?? false)) {
-            $this->withErrors($result['errors'] ?? []);
-            if (isset($result['message'])) {
-                $this->withError($result['message']);
-            }
+        $row = Accounts::findToken($token, 'password_reset');
+        if (!$row) {
+            $this->error('Este link expirou ou já foi usado. Peça um novo.');
 
-            return $this->redirect('/redefinir-senha/' . rawurlencode($token));
+            return $this->redirect('/recuperar-senha');
+        }
+        $data = $request->all();
+        if ($response = $this->invalid($data, ['password' => 'required|password|confirmed|max:120'], self::LABELS, '/recuperar-senha/' . $token)) {
+            return $response;
         }
 
-        $this->withSuccess($result['message'] ?? 'Senha atualizada.');
+        Db::transaction(static function () use ($row, $data): void {
+            Db::update('users', ['password_hash' => password_hash((string) $data['password'], PASSWORD_DEFAULT), 'updated_at' => now()], ['id' => (int) $row['user_id']]);
+            Db::update('security_tokens', ['used_at' => now()], ['id' => (int) $row['id']]);
+            Db::run('DELETE FROM sessions WHERE user_id = :u', ['u' => (int) $row['user_id']]);
+        });
+        Audit::activity((int) $row['user_id'], 'password_reset', 'Redefiniu a senha');
+        $this->success('Senha alterada. Entre com a nova senha.');
 
-        return $this->redirect('/entrar');
-    }
-
-    public function verifyEmail(Request $request): Response
-    {
-        $ok = $this->auth->verifyEmail((string) $request->param('token'));
-        $this->withSuccess($ok ? 'E-mail confirmado.' : 'Link inválido ou expirado.');
-
-        return $this->redirect(Auth::check() ? '/conta' : '/entrar');
-    }
-
-    /** @param array<string, mixed> $data */
-    private function authView(string $view, array $data): Response
-    {
-        $data['menuCategories'] = (new CategoryRepository())->menuTree();
-
-        return $this->view($view, $data, 'layouts/auth');
+        return $this->redirect('/login');
     }
 }

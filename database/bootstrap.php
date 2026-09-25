@@ -5,13 +5,13 @@ declare(strict_types=1);
 use App\Core\Autoloader;
 use App\Core\Database;
 use App\Core\Env;
-use App\Core\SqliteSchema;
+use App\Core\Schema;
 
 if (!defined('BASE_PATH')) {
     define('BASE_PATH', dirname(__DIR__));
 }
 
-if (!class_exists(Autoloader::class) && !class_exists(\Composer\Autoload\ClassLoader::class)) {
+if (!class_exists(Autoloader::class, false)) {
     $vendor = BASE_PATH . '/vendor/autoload.php';
     if (is_file($vendor)) {
         require $vendor;
@@ -23,7 +23,6 @@ if (!class_exists(Autoloader::class) && !class_exists(\Composer\Autoload\ClassLo
 }
 
 Env::load(BASE_PATH . '/.env');
-Database::connect(['path' => env('DB_PATH', 'storage/nexo.sqlite')]);
-if (!SqliteSchema::isInstalled(Database::pdo())) {
-    SqliteSchema::install(Database::pdo());
-}
+date_default_timezone_set((string) env('APP_TIMEZONE', 'America/Sao_Paulo'));
+Database::connect(['path' => env('DB_PATH', 'storage/cinquentaconto.sqlite')]);
+Schema::install();

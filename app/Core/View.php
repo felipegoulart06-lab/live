@@ -10,13 +10,14 @@ use Throwable;
 final class View
 {
     /** @param array<string, mixed> $data */
-    public static function render(string $view, array $data = [], ?string $layout = 'layouts/main'): string
+    public static function render(string $view, array $data = [], ?string $layout = 'layouts/public'): string
     {
         $viewFile = BASE_PATH . '/views/' . $view . '.php';
         if (!is_file($viewFile)) {
             throw new RuntimeException('View não encontrada: ' . $view);
         }
 
+        $data['authUser'] = $data['authUser'] ?? Auth::user();
         $data['errors'] = $data['errors'] ?? Session::getFlash('errors', []);
         $data['old'] = $data['old'] ?? Session::getFlash('old', []);
         $data['success'] = $data['success'] ?? Session::getFlash('success');

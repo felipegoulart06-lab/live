@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use App\Middleware\AuthMiddleware;
-use App\Middleware\GuestMiddleware;
-
 final class Router
 {
-    /** @var array<int, array{method:string, pattern:string, handler:array|string, middleware:array}> */
+    /** @var array<int, array{method:string, pattern:string, handler:array|string|\Closure, middleware:array}> */
     private array $routes = [];
 
     /** @var array<int, string> */
@@ -32,32 +29,32 @@ final class Router
         $this->groupMiddleware = $previousMiddleware;
     }
 
-    public function get(string $path, array|string $handler, array $middleware = []): void
+    public function get(string $path, array|string|\Closure $handler, array $middleware = []): void
     {
         $this->add('GET', $path, $handler, $middleware);
     }
 
-    public function post(string $path, array|string $handler, array $middleware = []): void
+    public function post(string $path, array|string|\Closure $handler, array $middleware = []): void
     {
         $this->add('POST', $path, $handler, $middleware);
     }
 
-    public function put(string $path, array|string $handler, array $middleware = []): void
+    public function put(string $path, array|string|\Closure $handler, array $middleware = []): void
     {
         $this->add('PUT', $path, $handler, $middleware);
     }
 
-    public function patch(string $path, array|string $handler, array $middleware = []): void
+    public function patch(string $path, array|string|\Closure $handler, array $middleware = []): void
     {
         $this->add('PATCH', $path, $handler, $middleware);
     }
 
-    public function delete(string $path, array|string $handler, array $middleware = []): void
+    public function delete(string $path, array|string|\Closure $handler, array $middleware = []): void
     {
         $this->add('DELETE', $path, $handler, $middleware);
     }
 
-    private function add(string $method, string $path, array|string $handler, array $middleware): void
+    private function add(string $method, string $path, array|string|\Closure $handler, array $middleware): void
     {
         $full = trim($this->groupPrefix . '/' . ltrim($path, '/'), '/');
         $pattern = $full === '' ? '/' : '/' . $full;
@@ -89,15 +86,7 @@ final class Router
             });
         }
 
-        if ($request->wantsJson()) {
-            return Response::json(['message' => 'Recurso não encontrado.'], 404);
-        }
-
-        return Response::view('pages/errors/404', [
-            'title' => 'Página não encontrada',
-            'authUser' => Auth::user(),
-            'csrf' => Session::csrfToken(),
-        ], 'layouts/main', 404);
+        throw HttpException::notFound();
     }
 
     /** @return array<string, string>|null */
@@ -116,8 +105,11 @@ final class Router
         return array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
     }
 
-    private function invoke(array|string $handler, Request $request): Response
+    private function invoke(array|string|\Closure $handler, Request $request): Response
     {
+        if ($handler instanceof \Closure) {
+            return $handler($request);
+        }
         if (is_string($handler)) {
             [$class, $method] = explode('@', $handler);
         } else {

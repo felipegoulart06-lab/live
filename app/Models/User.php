@@ -6,19 +6,18 @@ namespace App\Models;
 
 final class User
 {
-    /** @param array<int, string> $roles @param array<int, string> $permissions */
+    public const ROLES = ['admin' => 'Administrador', 'creator' => 'Criador', 'company' => 'Empresa'];
+
     public function __construct(
         public readonly int $id,
         public readonly string $uuid,
         public readonly string $email,
-        public readonly ?string $emailVerifiedAt,
-        public readonly string $accountType,
+        public readonly string $role,
+        public readonly ?string $adminLevel,
         public readonly string $status,
-        public readonly ?string $lastSeenAt,
-        public readonly bool $twoFactorEnabled,
-        public readonly array $roles = [],
-        public readonly array $permissions = [],
-        public readonly ?array $profile = null
+        public readonly string $displayName,
+        public readonly string $slug,
+        public readonly ?string $avatarPath,
     ) {
     }
 
@@ -26,68 +25,54 @@ final class User
     public static function fromArray(array $row): self
     {
         return new self(
-            id: (int) $row['id'],
-            uuid: (string) $row['uuid'],
-            email: (string) $row['email'],
-            emailVerifiedAt: $row['email_verified_at'] ?? null,
-            accountType: (string) $row['account_type'],
-            status: (string) $row['status'],
-            lastSeenAt: $row['last_seen_at'] ?? null,
-            twoFactorEnabled: (bool) ($row['two_factor_enabled'] ?? false),
-            roles: $row['_roles'] ?? [],
-            permissions: $row['_permissions'] ?? [],
-            profile: $row['_profile'] ?? null
+            (int) $row['id'],
+            (string) $row['uuid'],
+            (string) $row['email'],
+            (string) $row['role'],
+            $row['admin_level'] !== null ? (string) $row['admin_level'] : null,
+            (string) $row['status'],
+            (string) ($row['display_name'] ?? $row['email']),
+            (string) ($row['slug'] ?? ''),
+            $row['avatar_path'] ?? null,
         );
     }
 
-    public function hasRole(string $role): bool
+    public function isAdmin(): bool
     {
-        return in_array($role, $this->roles, true);
+        return $this->role === 'admin';
     }
 
-    /** @param array<int, string> $roles */
-    public function hasAnyRole(array $roles): bool
+    public function isMaster(): bool
     {
-        foreach ($roles as $role) {
-            if ($this->hasRole($role)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->role === 'admin' && $this->adminLevel === 'master';
     }
 
-    public function can(string $permission): bool
+    public function isCreator(): bool
     {
-        if ($this->hasRole('super_admin')) {
-            return true;
-        }
-
-        return in_array($permission, $this->permissions, true);
+        return $this->role === 'creator';
     }
 
-    public function displayName(): string
+    public function isCompany(): bool
     {
-        return (string) ($this->profile['display_name'] ?? $this->email);
+        return $this->role === 'company';
     }
 
-    public function slug(): ?string
+    public function homePath(): string
     {
-        return $this->profile['slug'] ?? null;
+        return match ($this->role) {
+            'admin' => '/admin',
+            'creator' => '/painel',
+            default => '/empresa',
+        };
     }
 
-    public function isStaff(): bool
+    public function areaPrefix(): string
     {
-        return $this->hasAnyRole(['super_admin', 'admin', 'moderator']);
+        return $this->isCreator() ? '/painel' : '/empresa';
     }
 
-    public function isSeller(): bool
+    public function firstName(): string
     {
-        return in_array($this->accountType, ['seller', 'both'], true);
-    }
-
-    public function isBuyer(): bool
-    {
-        return in_array($this->accountType, ['buyer', 'both'], true);
+        return explode(' ', trim($this->displayName))[0] ?: $this->displayName;
     }
 }

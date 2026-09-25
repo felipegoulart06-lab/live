@@ -1,60 +1,84 @@
 (function () {
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    'use strict';
 
-    document.querySelectorAll('[data-drawer]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const target = document.querySelector(btn.getAttribute('data-drawer'));
-            if (!target) return;
-            if (target.classList.contains('dash-side')) {
-                target.classList.toggle('is-open');
-                return;
-            }
-            target.hidden = !target.hidden;
-        });
-    });
-
-    document.querySelectorAll('[data-close-drawer]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const drawer = btn.closest('.drawer');
-            if (drawer) drawer.hidden = true;
-        });
-    });
-
-    document.querySelectorAll('.drawer').forEach(function (drawer) {
-        drawer.addEventListener('click', function (event) {
-            if (event.target === drawer) drawer.hidden = true;
-        });
-    });
-
-    window.Cinquenta = {
-        csrf: csrf,
-        toast: function (message) {
-            const region = document.getElementById('toast-region') || document.body;
-            const el = document.createElement('div');
-            el.className = 'toast';
-            el.textContent = message;
-            region.appendChild(el);
-            setTimeout(function () { el.remove(); }, 3200);
-        },
-        fetch: function (url, options) {
-            options = options || {};
-            options.headers = Object.assign({
-                'X-CSRF-TOKEN': csrf,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }, options.headers || {});
-            return fetch(url, options);
-        }
-    };
-    window.Nexo = window.Cinquenta;
+    function toast(message) {
+        var region = document.getElementById('toast-region') || document.body;
+        var el = document.createElement('div');
+        el.className = 'toast';
+        el.setAttribute('role', 'status');
+        el.textContent = message;
+        region.appendChild(el);
+        setTimeout(function () { el.remove(); }, 3200);
+    }
 
     function formatBRL(cents) {
         return 'R$ ' + (cents / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
+    // Public drawer menu
+    document.querySelectorAll('[data-drawer]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var target = document.querySelector(btn.getAttribute('data-drawer'));
+            if (!target) return;
+            target.hidden = !target.hidden;
+            btn.setAttribute('aria-expanded', String(!target.hidden));
+            if (!target.hidden) {
+                var first = target.querySelector('a, button');
+                if (first) first.focus();
+            }
+        });
+    });
+    document.querySelectorAll('.drawer').forEach(function (drawer) {
+        drawer.addEventListener('click', function (event) {
+            if (event.target === drawer || event.target.hasAttribute('data-close-drawer')) drawer.hidden = true;
+        });
+    });
+
+    // Panel sidebar on mobile
+    var side = document.getElementById('menu-painel');
+    var sideToggle = document.querySelector('[data-side-toggle]');
+    if (side && sideToggle) {
+        sideToggle.addEventListener('click', function (event) {
+            event.stopPropagation();
+            var open = side.classList.toggle('is-open');
+            sideToggle.setAttribute('aria-expanded', String(open));
+        });
+        document.addEventListener('click', function (event) {
+            if (side.classList.contains('is-open') && !side.contains(event.target)) {
+                side.classList.remove('is-open');
+                sideToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+        document.querySelectorAll('.drawer:not([hidden])').forEach(function (d) { d.hidden = true; });
+        if (side) side.classList.remove('is-open');
+    });
+
+    // Confirmation before destructive actions: <form data-confirm="Texto">
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        var message = form.getAttribute && form.getAttribute('data-confirm');
+        if (message && !window.confirm(message)) {
+            event.preventDefault();
+            return;
+        }
+        var button = form.querySelector('button[type="submit"]:not([data-keep-enabled])');
+        if (button && !event.defaultPrevented) {
+            setTimeout(function () { button.disabled = true; }, 0);
+        }
+    });
+
+    document.querySelectorAll('[data-autosubmit]').forEach(function (el) {
+        el.addEventListener('change', function () { if (el.form) el.form.submit(); });
+    });
+
+    // Gallery
     document.querySelectorAll('[data-gallery-src]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            const main = document.getElementById('gallery-main');
+            var main = document.getElementById('gallery-main');
             if (!main) return;
             main.src = btn.getAttribute('data-gallery-src');
             document.querySelectorAll('[data-gallery-src]').forEach(function (el) { el.classList.remove('is-active'); });
@@ -62,67 +86,91 @@
         });
     });
 
-    const box = document.querySelector('[data-buybox]');
+    // Buy box total
+    var box = document.querySelector('[data-buybox]');
     if (box) {
-        const totalEl = box.querySelector('[data-total]');
-        const daysEl = box.querySelector('[data-days-label]');
-        const packageInput = box.querySelector('[data-package-input]');
-        let packagePrice = 0;
-        let packageDays = 0;
-        let packageRevisions = 0;
-        let packageHours = 2;
-        const first = box.querySelector('[data-package].is-active') || box.querySelector('[data-package]');
-        if (first) {
-            packagePrice = parseInt(first.getAttribute('data-price') || '0', 10);
-            packageDays = parseInt(first.getAttribute('data-days') || '0', 10);
-            packageHours = parseInt(first.getAttribute('data-hours') || '2', 10);
-            packageRevisions = parseInt(first.getAttribute('data-revisions') || '0', 10);
-        }
-
-        function refreshTotal() {
-            let extraPrice = 0;
-            let extraDays = 0;
+        var totalEl = box.querySelector('[data-total]');
+        var daysEl = box.querySelector('[data-days-label]');
+        var refresh = function () {
+            var pkg = box.querySelector('input[name="package_id"]:checked');
+            if (!pkg) return;
+            var price = parseInt(pkg.getAttribute('data-price') || '0', 10);
+            var days = parseInt(pkg.getAttribute('data-days') || '0', 10);
             box.querySelectorAll('[data-extra]:checked').forEach(function (input) {
-                extraPrice += parseInt(input.getAttribute('data-price') || '0', 10);
-                extraDays += parseInt(input.getAttribute('data-days') || '0', 10);
+                price += parseInt(input.getAttribute('data-price') || '0', 10);
+                days += parseInt(input.getAttribute('data-days') || '0', 10);
             });
-            if (totalEl) totalEl.textContent = formatBRL(packagePrice + extraPrice);
-            if (daysEl) daysEl.textContent = packageHours + 'h de vídeo · ' + (packageDays + extraDays) + ' dias';
-        }
-
-        box.querySelectorAll('[data-package]').forEach(function (tab) {
-            tab.addEventListener('click', function () {
-                box.querySelectorAll('[data-package]').forEach(function (el) { el.classList.remove('is-active'); });
-                tab.classList.add('is-active');
-                packagePrice = parseInt(tab.getAttribute('data-price') || '0', 10);
-                packageDays = parseInt(tab.getAttribute('data-days') || '0', 10);
-                packageHours = parseInt(tab.getAttribute('data-hours') || '2', 10);
-                packageRevisions = parseInt(tab.getAttribute('data-revisions') || '0', 10);
-                if (packageInput) packageInput.value = tab.getAttribute('data-id') || '';
-                const bodies = box.querySelectorAll('[data-package-body]');
-                const tabs = Array.prototype.slice.call(box.querySelectorAll('[data-package]'));
-                const index = tabs.indexOf(tab);
-                bodies.forEach(function (body, i) { body.hidden = i !== index; });
-                refreshTotal();
-            });
-        });
-
-        box.querySelectorAll('[data-extra]').forEach(function (input) {
-            input.addEventListener('change', refreshTotal);
-        });
-        refreshTotal();
+            if (totalEl) totalEl.textContent = formatBRL(price);
+            if (daysEl) daysEl.textContent = pkg.getAttribute('data-hours') + 'h de vídeo · ' + days + ' dias';
+        };
+        box.addEventListener('change', refresh);
+        refresh();
     }
 
+    // Copy link
     document.querySelectorAll('[data-share]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            const link = window.location.href;
+            var link = window.location.href;
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(link).then(function () {
-                    window.Nexo.toast('Link copiado.');
-                });
-                return;
+                navigator.clipboard.writeText(link).then(function () { toast('Link copiado.'); });
+            } else {
+                toast(link);
             }
-            window.Nexo.toast(link);
         });
     });
+
+    // Register: company name only for companies
+    var companyBlock = document.querySelector('[data-company-only]');
+    if (companyBlock) {
+        document.querySelectorAll('[data-toggle-company]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                companyBlock.hidden = radio.getAttribute('data-toggle-company') !== '1';
+            });
+        });
+    }
+
+    // Repeatable rows: <div data-repeat="packages" data-max="6"> + <template data-repeat-template="packages">
+    document.querySelectorAll('[data-repeat]').forEach(function (list) {
+        var name = list.getAttribute('data-repeat');
+        var template = document.querySelector('template[data-repeat-template="' + name + '"]');
+        var addBtn = document.querySelector('[data-repeat-add="' + name + '"]');
+        var max = parseInt(list.getAttribute('data-max') || '50', 10);
+        var sync = function () {
+            var count = list.querySelectorAll('[data-repeat-row]').length;
+            if (addBtn) addBtn.disabled = count >= max;
+        };
+        if (addBtn && template) {
+            addBtn.addEventListener('click', function () {
+                if (list.querySelectorAll('[data-repeat-row]').length >= max) return;
+                list.appendChild(template.content.cloneNode(true));
+                var rows = list.querySelectorAll('[data-repeat-row]');
+                var input = rows[rows.length - 1].querySelector('input, textarea, select');
+                if (input) input.focus();
+                sync();
+            });
+        }
+        list.addEventListener('click', function (event) {
+            var remove = event.target.closest('[data-repeat-remove]');
+            if (!remove) return;
+            var row = remove.closest('[data-repeat-row]');
+            if (row) row.remove();
+            sync();
+        });
+        sync();
+    });
+
+    // Character counters: <textarea data-count="400">
+    document.querySelectorAll('[data-count]').forEach(function (field) {
+        var max = parseInt(field.getAttribute('data-count'), 10);
+        var out = document.createElement('small');
+        out.setAttribute('aria-live', 'polite');
+        field.insertAdjacentElement('afterend', out);
+        var update = function () { out.textContent = field.value.length + ' / ' + max; };
+        field.addEventListener('input', update);
+        update();
+    });
+
+    // Keep chat scrolled to the newest message
+    var thread = document.querySelector('.thread-body');
+    if (thread) thread.scrollTop = thread.scrollHeight;
 })();

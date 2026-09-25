@@ -2,80 +2,77 @@
 
 declare(strict_types=1);
 
-use App\Controllers\Admin\AuditAdminController;
-use App\Controllers\Admin\CategoryAdminController;
-use App\Controllers\Admin\ContentAdminController;
+use App\Controllers\Admin\ContentController;
 use App\Controllers\Admin\DashboardController;
-use App\Controllers\Admin\FinanceAdminController;
-use App\Controllers\Admin\FreelancerController;
-use App\Controllers\Admin\OrderAdminController;
-use App\Controllers\Admin\PageAdminController;
-use App\Controllers\Admin\ProjectAdminController;
-use App\Controllers\Admin\ServiceAdminController;
-use App\Controllers\Admin\SettingAdminController;
-use App\Controllers\Admin\UserAdminController;
-use App\Core\Application;
+use App\Controllers\Admin\DealController;
+use App\Controllers\Admin\ListingController;
+use App\Controllers\Admin\ModerationController;
+use App\Controllers\Admin\SystemController;
+use App\Controllers\Admin\UserController;
 
-$router = Application::boot()->router();
+/** @var \App\Core\Router $router */
 
-$router->group('/admin', ['auth', 'admin'], function ($router): void {
+$router->group('admin', ['auth', 'role:admin'], static function ($router): void {
     $router->get('/', [DashboardController::class, 'index']);
 
-    $router->get('/usuarios', [UserAdminController::class, 'index'], ['permission:users.view']);
-    $router->get('/usuarios/{id}/editar', [UserAdminController::class, 'edit'], ['permission:users.manage']);
-    $router->post('/usuarios/{id}', [UserAdminController::class, 'update'], ['permission:users.manage']);
+    $router->get('/anuncios', [ListingController::class, 'index']);
+    $router->get('/anuncios/pendentes', [ListingController::class, 'pending']);
+    $router->get('/anuncios/{id}', [ListingController::class, 'show']);
+    $router->get('/anuncios/{id}/previa', [ListingController::class, 'preview']);
+    $router->post('/anuncios/{id}', [ListingController::class, 'update']);
+    $router->post('/anuncios/{id}/aprovar', [ListingController::class, 'approve']);
+    $router->post('/anuncios/{id}/reprovar', [ListingController::class, 'reject']);
+    $router->post('/anuncios/{id}/pausar', [ListingController::class, 'pause']);
+    $router->post('/anuncios/{id}/reativar', [ListingController::class, 'reactivate']);
+    $router->post('/anuncios/{id}/excluir', [ListingController::class, 'destroy']);
 
-    $router->get('/profissionais', [FreelancerController::class, 'index'], ['permission:users.manage']);
-    $router->get('/profissionais/novo', [FreelancerController::class, 'create'], ['permission:users.manage']);
-    $router->post('/profissionais', [FreelancerController::class, 'store'], ['permission:users.manage']);
-    $router->get('/profissionais/{id}/editar', [FreelancerController::class, 'edit'], ['permission:users.manage']);
-    $router->post('/profissionais/{id}', [FreelancerController::class, 'update'], ['permission:users.manage']);
-    $router->post('/profissionais/{id}/desativar', [FreelancerController::class, 'deactivate'], ['permission:users.manage']);
+    $router->get('/criadores', [UserController::class, 'creators']);
+    $router->get('/criadores/{id}', [UserController::class, 'show']);
+    $router->post('/criadores/{id}/verificar', [UserController::class, 'verify']);
+    $router->get('/empresas', [UserController::class, 'companies']);
+    $router->get('/empresas/{id}', [UserController::class, 'show']);
+    $router->get('/bloqueados', [UserController::class, 'blocked']);
+    $router->post('/usuarios/{id}/bloquear', [UserController::class, 'block']);
+    $router->post('/usuarios/{id}/desbloquear', [UserController::class, 'unblock']);
+    $router->get('/administradores', [UserController::class, 'admins']);
+    $router->post('/administradores', [UserController::class, 'storeAdmin']);
+    $router->post('/administradores/{id}/nivel', [UserController::class, 'setAdminLevel']);
 
-    $router->get('/servicos', [ServiceAdminController::class, 'index'], ['permission:services.moderate']);
-    $router->post('/servicos/{id}/status', [ServiceAdminController::class, 'updateStatus'], ['permission:services.moderate']);
-    $router->post('/servicos/{id}/destaque', [ServiceAdminController::class, 'toggleFeatured'], ['permission:services.moderate']);
+    $router->get('/solicitacoes', [DealController::class, 'requests']);
+    $router->get('/contratos', [DealController::class, 'contracts']);
+    $router->get('/contratos/{id}', [DealController::class, 'contract']);
+    $router->post('/contratos/{id}/pagamento', [DealController::class, 'confirmPayment']);
+    $router->post('/contratos/{id}/cancelar', [DealController::class, 'cancelContract']);
+    $router->post('/contratos/{id}/observacao', [DealController::class, 'note']);
+    $router->get('/pagamentos', [DealController::class, 'payments']);
+    $router->post('/pagamentos/{id}/repasse', [DealController::class, 'payout']);
+    $router->get('/mensagens', [DealController::class, 'conversations']);
+    $router->get('/mensagens/{id}', [DealController::class, 'conversation']);
 
-    $router->get('/pedidos', [OrderAdminController::class, 'index'], ['permission:orders.view']);
-    $router->get('/pedidos/{id}', [OrderAdminController::class, 'show'], ['permission:orders.view']);
-    $router->post('/pedidos/{id}/status', [OrderAdminController::class, 'updateStatus'], ['permission:orders.view']);
+    $router->get('/categorias', [ContentController::class, 'categories']);
+    $router->post('/categorias', [ContentController::class, 'saveCategory']);
+    $router->post('/categorias/{id}/excluir', [ContentController::class, 'deleteCategory']);
+    $router->get('/destaques', [ContentController::class, 'highlights']);
+    $router->post('/destaques', [ContentController::class, 'addHighlight']);
+    $router->post('/destaques/{id}/mover', [ContentController::class, 'moveHighlight']);
+    $router->post('/destaques/{id}/remover', [ContentController::class, 'removeHighlight']);
+    $router->get('/conteudo', [ContentController::class, 'home']);
+    $router->post('/conteudo', [ContentController::class, 'saveHome']);
+    $router->get('/faq', [ContentController::class, 'faqs']);
+    $router->post('/faq', [ContentController::class, 'saveFaq']);
+    $router->post('/faq/{id}/excluir', [ContentController::class, 'deleteFaq']);
+    $router->get('/paginas', [ContentController::class, 'pages']);
+    $router->post('/paginas', [ContentController::class, 'savePage']);
 
-    $router->get('/projetos', [ProjectAdminController::class, 'index'], ['permission:orders.view']);
-    $router->post('/projetos/{id}/status', [ProjectAdminController::class, 'updateStatus'], ['permission:orders.view']);
+    $router->get('/denuncias', [ModerationController::class, 'reports']);
+    $router->get('/denuncias/{id}', [ModerationController::class, 'report']);
+    $router->post('/denuncias/{id}', [ModerationController::class, 'updateReport']);
+    $router->get('/avaliacoes', [ModerationController::class, 'reviews']);
+    $router->post('/avaliacoes/{id}', [ModerationController::class, 'moderateReview']);
 
-    $router->get('/pagamentos', [FinanceAdminController::class, 'payments'], ['permission:finance.manage']);
-    $router->get('/saques', [FinanceAdminController::class, 'withdrawals'], ['permission:finance.manage']);
-    $router->post('/saques/{id}', [FinanceAdminController::class, 'reviewWithdrawal'], ['permission:finance.manage']);
-
-    $router->get('/categorias', [CategoryAdminController::class, 'index'], ['permission:cms.manage']);
-    $router->get('/categorias/nova', [CategoryAdminController::class, 'create'], ['permission:cms.manage']);
-    $router->post('/categorias', [CategoryAdminController::class, 'store'], ['permission:cms.manage']);
-    $router->get('/categorias/{id}/editar', [CategoryAdminController::class, 'edit'], ['permission:cms.manage']);
-    $router->post('/categorias/{id}', [CategoryAdminController::class, 'update'], ['permission:cms.manage']);
-    $router->post('/categorias/{id}/subcategorias', [CategoryAdminController::class, 'storeSub'], ['permission:cms.manage']);
-    $router->post('/categorias/{id}/subcategorias/{sub}/excluir', [CategoryAdminController::class, 'deleteSub'], ['permission:cms.manage']);
-
-    $router->get('/paginas', [PageAdminController::class, 'index'], ['permission:cms.manage']);
-    $router->get('/paginas/nova', [PageAdminController::class, 'create'], ['permission:cms.manage']);
-    $router->post('/paginas', [PageAdminController::class, 'store'], ['permission:cms.manage']);
-    $router->get('/paginas/{id}/editar', [PageAdminController::class, 'edit'], ['permission:cms.manage']);
-    $router->post('/paginas/{id}', [PageAdminController::class, 'update'], ['permission:cms.manage']);
-    $router->post('/paginas/{id}/excluir', [PageAdminController::class, 'destroy'], ['permission:cms.manage']);
-
-    $router->get('/banners', [ContentAdminController::class, 'banners'], ['permission:cms.manage']);
-    $router->post('/banners', [ContentAdminController::class, 'saveBanner'], ['permission:cms.manage']);
-    $router->post('/banners/{id}/excluir', [ContentAdminController::class, 'deleteBanner'], ['permission:cms.manage']);
-
-    $router->get('/faqs', [ContentAdminController::class, 'faqs'], ['permission:cms.manage']);
-    $router->post('/faqs', [ContentAdminController::class, 'saveFaq'], ['permission:cms.manage']);
-    $router->post('/faqs/{id}/excluir', [ContentAdminController::class, 'deleteFaq'], ['permission:cms.manage']);
-
-    $router->get('/depoimentos', [ContentAdminController::class, 'testimonials'], ['permission:cms.manage']);
-    $router->post('/depoimentos', [ContentAdminController::class, 'saveTestimonial'], ['permission:cms.manage']);
-    $router->post('/depoimentos/{id}/excluir', [ContentAdminController::class, 'deleteTestimonial'], ['permission:cms.manage']);
-
-    $router->get('/configuracoes', [SettingAdminController::class, 'edit'], ['permission:settings.manage']);
-    $router->post('/configuracoes', [SettingAdminController::class, 'update'], ['permission:settings.manage']);
-
-    $router->get('/auditoria', [AuditAdminController::class, 'index'], ['permission:settings.manage']);
+    $router->get('/configuracoes', [SystemController::class, 'settings']);
+    $router->post('/configuracoes', [SystemController::class, 'saveSettings']);
+    $router->get('/atividade', [SystemController::class, 'activity']);
+    $router->get('/notificacoes', [SystemController::class, 'notifications']);
+    $router->post('/notificacoes', [SystemController::class, 'broadcast']);
 });

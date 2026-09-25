@@ -5,33 +5,44 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Db;
 use App\Core\Request;
 use App\Core\Response;
-use App\Repositories\CategoryRepository;
-use App\Repositories\ContentRepository;
-use App\Repositories\PageRepository;
-use App\Repositories\ServiceRepository;
+use App\Queries\CreatorQueries;
+use App\Queries\ListingQueries;
 
 final class HomeController extends Controller
 {
     public function index(Request $request): Response
     {
-        $categories = new CategoryRepository();
-        $services = new ServiceRepository();
-        $content = new ContentRepository();
-        $pages = new PageRepository();
+        $featuredCreators = CreatorQueries::highlighted('featured_creators', 8);
+        $mostHired = ListingQueries::highlighted('most_hired', 10);
+        if ($mostHired === []) {
+            $mostHired = ListingQueries::cards('l.contracts_count DESC, l.rating_avg DESC', 10);
+        }
+        $newListings = ListingQueries::highlighted('new_listings', 10);
+        if ($newListings === []) {
+            $newListings = ListingQueries::cards('l.published_at DESC, l.id DESC', 10);
+        }
+        $forCompanies = ListingQueries::highlighted('video_for_company', 10);
 
-        return $this->view('pages/home', [
-            'title' => setting('meta_title', brand_name() . ' — horas de vídeo para a sua empresa'),
-            'metaDescription' => setting('meta_description', 'Empresas encontram criadores para gravar 2, 4, 6 ou 8 horas de vídeo. O tema é definido por quem paga. Telefone e WhatsApp não ficam expostos.'),
-            'menuCategories' => $categories->menuTree(),
-            'popularCategories' => $categories->popular(8),
-            'featured' => $services->homeList('featured', 10),
-            'bestSelling' => $services->homeList('best_selling', 10),
-            'recentServices' => $services->homeList('today', 10) ?: $services->homeList('recent', 10),
-            'specialized' => $services->homeList('recommended', 10),
-            'banners' => $content->banners(),
-            'footerPages' => $pages->published(),
+        $videoTypes = Db::all(
+            "SELECT c.name, c.slug, c.description, c.image_path FROM home_highlights h
+             JOIN categories c ON c.id = h.item_id AND c.status = 'visible'
+             WHERE h.section = 'video_types' AND h.item_type = 'category' ORDER BY h.sort_order, h.id"
+        );
+        if ($videoTypes === []) {
+            $videoTypes = array_slice(ListingQueries::visibleCategories(), 0, 8);
+        }
+
+        return $this->view('public/home', [
+            'title' => brand_name() . ' · Horas de vídeo para empresas',
+            'featuredCreators' => $featuredCreators,
+            'mostHired' => $mostHired,
+            'newListings' => $newListings,
+            'forCompanies' => $forCompanies,
+            'videoTypes' => $videoTypes,
+            'faqs' => Db::all("SELECT question, answer FROM faqs WHERE status = 'visible' AND audience IN ('all', 'company') ORDER BY sort_order, id LIMIT 6"),
         ]);
     }
 }

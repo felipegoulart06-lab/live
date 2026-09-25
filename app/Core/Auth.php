@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Models\User;
-use App\Repositories\UserRepository;
 
 final class Auth
 {
@@ -14,14 +13,12 @@ final class Auth
 
     public static function id(): ?int
     {
-        $id = Session::get('user_id');
-
-        return $id ? (int) $id : null;
+        return self::user()?->id;
     }
 
     public static function check(): bool
     {
-        return self::id() !== null;
+        return self::user() !== null;
     }
 
     public static function user(): ?User
@@ -29,46 +26,46 @@ final class Auth
         if (self::$resolved) {
             return self::$user;
         }
-
         self::$resolved = true;
-        $id = self::id();
-        if (!$id) {
+
+        $id = (int) Session::get('user_id', 0);
+        if ($id <= 0) {
             return null;
         }
 
-        $row = (new UserRepository())->findActive($id);
-        self::$user = $row ? User::fromArray($row) : null;
+        $row = Db::first(
+            "SELECT u.id, u.uuid, u.email, u.role, u.admin_level, u.status, u.last_seen_at,
+                    p.display_name, p.slug, p.avatar_path
+             FROM users u LEFT JOIN profiles p ON p.user_id = u.id
+             WHERE u.id = :id AND u.deleted_at IS NULL AND u.status = 'active'",
+            ['id' => $id]
+        );
+        if (!$row) {
+            Session::forget('user_id');
 
-        return self::$user;
+            return null;
+        }
+
+        if (!$row['last_seen_at'] || strtotime((string) $row['last_seen_at']) < time() - 120) {
+            Db::run('UPDATE users SET last_seen_at = :now WHERE id = :id', ['now' => now(), 'id' => $id]);
+        }
+
+        return self::$user = User::fromArray($row);
     }
 
-    public static function login(User $user): void
+    public static function login(int $userId): void
     {
         Session::regenerate();
-        Session::set('user_id', $user->id);
-        self::$user = $user;
-        self::$resolved = true;
+        Session::set('user_id', $userId);
+        self::$user = null;
+        self::$resolved = false;
     }
 
     public static function logout(): void
     {
-        self::$user = null;
-        self::$resolved = true;
         Session::forget('user_id');
         Session::regenerate();
-    }
-
-    public static function hasRole(string $role): bool
-    {
-        $user = self::user();
-
-        return $user ? $user->hasRole($role) : false;
-    }
-
-    public static function can(string $permission): bool
-    {
-        $user = self::user();
-
-        return $user ? $user->can($permission) : false;
+        self::$user = null;
+        self::$resolved = true;
     }
 }

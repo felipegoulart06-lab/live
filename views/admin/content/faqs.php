@@ -1,44 +1,51 @@
-<?php $e = $editing ?? []; ?>
-<section class="dash-page">
-    <div class="section-head"><h1>Perguntas frequentes</h1></div>
-    <form class="admin-form" method="post" action="<?= e(url('/admin/faqs')) ?>">
-        <?= csrf_field() ?>
-        <?php if (!empty($e['id'])): ?><input type="hidden" name="id" value="<?= (int) $e['id'] ?>"><?php endif; ?>
-        <fieldset>
-            <legend><?= !empty($e['id']) ? 'Editar FAQ' : 'Nova FAQ' ?></legend>
-            <label>Pergunta<input name="question" required value="<?= e($e['question'] ?? '') ?>"></label>
-            <label>Resposta<textarea name="answer" rows="4" required><?= e($e['answer'] ?? '') ?></textarea></label>
-            <div class="form-grid">
-                <label>Onde
-                    <select name="placement">
-                        <?php foreach (['both' => 'Home e ajuda', 'home' => 'Home', 'help' => 'Ajuda'] as $k => $label): ?>
-                            <option value="<?= e($k) ?>" <?= (($e['placement'] ?? 'both') === $k) ? 'selected' : '' ?>><?= e($label) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label>Ordem<input type="number" name="sort_order" value="<?= e($e['sort_order'] ?? 0) ?>"></label>
+<?php
+$e = $edit ?? [];
+$val = static fn (string $k, string $d = ''): string => (string) old($k, $e[$k] ?? $d);
+$audiences = ['all' => 'Todos', 'company' => 'Empresas', 'creator' => 'Criadores'];
+?>
+<div class="page-title"><div><h1>Perguntas frequentes</h1><p>Aparecem na <a href="<?= e(url('/ajuda')) ?>">central de ajuda</a> e, para empresas, na home.</p></div></div>
+<div class="grid-main">
+    <div>
+        <?php if ($faqs === []): ?>
+            <?= view('empty', ['title' => 'Nenhuma pergunta cadastrada']) ?>
+        <?php else: ?>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead><tr><th scope="col">Pergunta</th><th scope="col">Público</th><th scope="col" class="num">Ordem</th><th scope="col">Situação</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+                    <tbody>
+                    <?php foreach ($faqs as $f): ?>
+                        <tr>
+                            <td><strong><?= e($f['question']) ?></strong><small class="clamp"><?= e($f['answer']) ?></small></td>
+                            <td><?= e($audiences[$f['audience']] ?? $f['audience']) ?></td>
+                            <td class="num"><?= (int) $f['sort_order'] ?></td>
+                            <td><?= status_badge('visibility', $f['status']) ?></td>
+                            <td>
+                                <div class="actions-menu">
+                                    <a class="btn btn-ghost btn-sm" href="<?= e(url('/admin/faq?editar=' . (int) $f['id'])) ?>">Editar</a>
+                                    <form method="post" action="<?= e(url('/admin/faq/' . (int) $f['id'] . '/excluir')) ?>" class="inline" data-confirm="Excluir esta pergunta?"><?= csrf_field() ?><button class="btn btn-danger btn-sm" type="submit">Excluir</button></form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-            <label class="check"><input type="checkbox" name="is_active" value="1" <?= !isset($e['is_active']) || !empty($e['is_active']) ? 'checked' : '' ?>> Ativa</label>
-            <div class="form-actions"><button class="btn btn-accent" type="submit">Salvar</button></div>
-        </fieldset>
-    </form>
-    <div class="table-wrap">
-        <table class="admin-table">
-            <thead><tr><th>Pergunta</th><th></th></tr></thead>
-            <tbody>
-            <?php foreach ($rows as $row): ?>
-                <tr>
-                    <td><?= e($row['question']) ?></td>
-                    <td class="td-actions">
-                        <a class="btn btn-ghost" href="<?= e(url('/admin/faqs?id=' . $row['id'])) ?>">Editar</a>
-                        <form class="inline-form" method="post" action="<?= e(url('/admin/faqs/' . $row['id'] . '/excluir')) ?>">
-                            <?= csrf_field() ?>
-                            <button class="btn btn-ghost" type="submit">Excluir</button>
-                        </form>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
+        <?php endif; ?>
     </div>
-</section>
+    <form class="card card-pad form" method="post" action="<?= e(url('/admin/faq')) ?>" novalidate>
+        <?= csrf_field() ?>
+        <input type="hidden" name="id" value="<?= (int) ($e['id'] ?? 0) ?>">
+        <h2 class="panel-title mb-0"><?= $edit ? 'Editar pergunta' : 'Nova pergunta' ?></h2>
+        <?= view('field', ['name' => 'question', 'label' => 'Pergunta', 'value' => $val('question'), 'attrs' => 'required maxlength="200"']) ?>
+        <?= view('field', ['name' => 'answer', 'label' => 'Resposta', 'type' => 'textarea', 'value' => $val('answer'), 'attrs' => 'required rows="5" maxlength="2000"']) ?>
+        <div class="form-grid">
+            <?= view('field', ['name' => 'audience', 'label' => 'Público', 'type' => 'select', 'value' => $val('audience', 'all'), 'options' => $audiences]) ?>
+            <?= view('field', ['name' => 'status', 'label' => 'Situação', 'type' => 'select', 'value' => $val('status', 'visible'), 'options' => ['visible' => 'Visível', 'hidden' => 'Oculta']]) ?>
+            <?= view('field', ['name' => 'sort_order', 'label' => 'Ordem', 'type' => 'number', 'value' => $val('sort_order', '0'), 'attrs' => 'min="0" max="999"']) ?>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-ink" type="submit">Salvar pergunta</button>
+            <?php if ($edit): ?><a class="btn btn-ghost" href="<?= e(url('/admin/faq')) ?>">Cancelar</a><?php endif; ?>
+        </div>
+    </form>
+</div>

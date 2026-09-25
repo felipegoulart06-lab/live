@@ -1,71 +1,60 @@
 # CinquentaConto
 
-Marketplace em PHP para empresas contratarem **horas de vídeo** (2, 4, 6 ou 8) com criadores. O tema é definido por quem paga. Telefone e WhatsApp não ficam no anúncio público.
+Marketplace em PHP para empresas contratarem **horas de vídeo** com criadores. O tema é definido por quem paga, e telefone e WhatsApp do criador não aparecem no anúncio.
+
+Três perfis, cada um com o seu painel:
+
+- **Empresa** (`/empresa`): solicita horas, acompanha contratos, conversa com o criador, avalia e guarda favoritos.
+- **Criador** (`/painel`): cria anúncios em 5 etapas (serviço, apresentação, horas e preços, adicionais, publicação), responde solicitações, conduz contratos e acompanha o financeiro.
+- **Admin** (`/admin`): modera anúncios, criadores, empresas, contratos, pagamentos, denúncias, avaliações, conteúdo e configurações. Toda ação fica na auditoria, que não pode ser editada pelo painel.
+
+As permissões são verificadas no servidor: cada consulta de anúncio, solicitação, contrato ou conversa é filtrada pelo dono, e o acesso a um registro de outro usuário responde "não encontrado".
 
 ## Requisitos
 
-- PHP 8.3 ou superior, com extensões: `pdo_sqlite`, `sqlite3`, `curl`, `mbstring`, `openssl`, `fileinfo`
-- Composer é opcional (o projeto já carrega as classes sozinho)
+- PHP 8.3 ou superior, com `pdo_sqlite` (local) ou `pdo_pgsql` (Supabase), `curl`, `mbstring`, `openssl` e `fileinfo`
+- Sem Composer: o projeto carrega as próprias classes
 
 ## Subir localmente
 
-Na pasta do projeto:
-
 ```bash
 copy .env.example .env
-php database/install.php
 php -S localhost:8080 -t public public/router.php
 ```
 
-No macOS/Linux use `cp .env.example .env`.
+No macOS/Linux use `cp .env.example .env`. Abra [http://localhost:8080](http://localhost:8080).
 
-Abra [http://localhost:8080](http://localhost:8080).
+No primeiro acesso o banco SQLite (`storage/cinquentaconto.sqlite`) é criado com dados de demonstração. Para recomeçar do zero: `php database/seed.php --fresh`.
 
-Depois do `install.php`, o admin de demonstração é:
+## Contas de demonstração
 
-- e-mail: `admin@cinquentaconto.test`
-- senha: `CinquentaAdmin!234`
+| Perfil | E-mail | Senha |
+| --- | --- | --- |
+| Admin master | `admin@cinquentaconto.com.br` | `CinquentaAdmin!234` |
+| Admin staff | `moderacao@cinquentaconto.com.br` | `Demo12345` |
+| Criador | `ana.freire@criador.demo` (e os outros `@criador.demo`) | `Demo12345` |
+| Empresa | `contato@casa-aurora-cosmeticos.demo` (e os outros `contato@*.demo`) | `Demo12345` |
 
-Troque essa senha se o ambiente não for só local.
+Troque as senhas antes de abrir o site ao público.
 
-## Configurar
+## Produção (Vercel + Supabase)
 
-Edite `.env` (esse arquivo **não** vai para o GitHub):
+O repositório já tem `vercel.json` e `api/index.php`. No projeto da Vercel, deixe **Root Directory** vazio e o framework como **Other**.
 
-- `APP_URL` — URL pública do site
-- `APP_DEBUG` — `false` em produção
+Variáveis de ambiente:
 
-Login com Google: no painel, **Configurações**, cole Client ID e secret e ative. A URI de retorno é `{APP_URL}/entrar/google/retorno`.
+- `APP_URL`: `https://seu-dominio`
+- `APP_DEBUG`: `false`
+- `APP_KEY`: uma string aleatória longa
+- `DATABASE_URL`: connection string do Supabase (Project Settings > Database, pooler na porta 6543)
+- `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`: para guardar uploads no Supabase Storage
+- `SESSION_SECURE`: `true`
 
-## Painel
+No Supabase Storage, crie os buckets `public-media` (público: fotos de anúncios, avatares e categorias) e `private-files` (privado: anexos de contratos).
 
-[http://localhost:8080/admin](http://localhost:8080/admin) — usuários, profissionais, serviços, pedidos, financeiro, CMS e auditoria.
+As tabelas têm RLS ligado e sem políticas: a API pública do Supabase não lê nada, e só a aplicação (conexão direta ao Postgres) acessa os dados. Sem `DATABASE_URL`, a Vercel usa um SQLite temporário em `/tmp`, que se perde quando a instância reinicia.
 
-## Produção (resumo)
-
-1. Aponte o document root para `public/`
-2. `APP_DEBUG=false` e `APP_URL` com HTTPS
-3. Rode `php database/install.php` uma vez (ou só `migrate.php` + seeds, se preferir)
-4. Garanta permissão de escrita em `storage/`
-
-## Vercel
-
-A Vercel não executa PHP como um site estático: sem o runtime, o `index.php` é baixado. Este repositório já inclui `vercel.json` e `api/index.php`.
-
-No projeto da Vercel:
-
-1. **Root Directory** vazio (raiz do repo, **não** `public`)
-2. Framework: Other
-3. Opcional: variável `APP_URL` = `https://seu-dominio.vercel.app`
-
-O SQLite na Vercel vive em `/tmp` (some quando a instância esfria). Para dados permanentes, use um host PHP tradicional.
-
-## Licença
-
-1. Aponte o document root para `public/`
-2. `APP_DEBUG=false` e `APP_URL` com HTTPS
-3. Rode `php database/install.php` uma vez (ou só `migrate.php` + seeds, se preferir)
-4. Garanta permissão de escrita em `storage/`
+Para popular um Postgres vazio: `php database/seed.php` com `DATABASE_URL` definido. Para gerar o SQL do schema: `php database/schema_sql.php`.
 
 ## Licença
 

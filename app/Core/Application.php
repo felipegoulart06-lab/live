@@ -24,21 +24,20 @@ final class Application
         }
 
         Env::load(BASE_PATH . '/.env');
-
         date_default_timezone_set((string) env('APP_TIMEZONE', 'America/Sao_Paulo'));
 
         $config = Config::load();
         Database::connect($config->get('database') ?? []);
-        SqliteSchema::install(Database::pdo());
+        Schema::install();
         self::ensureDemoData();
-        \App\Services\SettingService::ensureDefaults();
-        Session::start($config->get('session'));
 
         self::$instance = new self(new Router(), $config);
+        Session::start($config->get('session') ?? []);
 
+        $router = self::$instance->router;
         require BASE_PATH . '/routes/web.php';
+        require BASE_PATH . '/routes/area.php';
         require BASE_PATH . '/routes/admin.php';
-        require BASE_PATH . '/routes/api.php';
 
         return self::$instance;
     }
@@ -53,33 +52,57 @@ final class Application
         return $this->config;
     }
 
+    /** A fresh local SQLite file gets the demo data; Postgres is seeded explicitly with `database/seed.php`. */
     private static function ensureDemoData(): void
     {
-        $count = (int) Database::pdo()->query('SELECT COUNT(*) FROM users')->fetchColumn();
-        if ($count > 0) {
+        if (Database::isPostgres() || (int) Db::value('SELECT COUNT(*) FROM users') > 0) {
             return;
         }
-
-        ob_start();
-        require BASE_PATH . '/database/seed.php';
-        require BASE_PATH . '/database/seed_media.php';
-        require BASE_PATH . '/database/seed_service_detail.php';
-        ob_end_clean();
+        (new \App\Seed\DemoSeeder())->run();
     }
 
     public function run(): void
     {
         $request = Request::capture();
 
-        $pipeline = [
-            MaintenanceMiddleware::class,
-            CsrfMiddleware::class,
-        ];
+        try {
+            $response = (new Pipeline([MaintenanceMiddleware::class, CsrfMiddleware::class]))
+                ->handle($request, fn (Request $request): Response => $this->router->dispatch($request));
+        } catch (UploadException $e) {
+            $response = self::backWithError($request, $e->getMessage());
+        } catch (HttpException $e) {
+            // 422 = business rule the user can fix (e.g. "complete o checklist"): show it on the page they came from.
+            $response = $e->status === 422 && !$request->wantsJson() && !$request->isAjax()
+                ? self::backWithError($request, $e->getMessage())
+                : self::errorResponse($request, $e->status, $e->getMessage());
+        }
 
-        $response = (new Pipeline($pipeline))->handle($request, function (Request $request): Response {
-            return $this->router->dispatch($request);
-        });
+        $response->withSecurityHeaders()->send();
+    }
 
-        $response->send();
+    private static function backWithError(Request $request, string $message): Response
+    {
+        if ($request->wantsJson() || $request->isAjax()) {
+            return Response::json(['message' => $message], 422);
+        }
+        Session::flash('error', $message);
+        $referer = (string) ($_SERVER['HTTP_REFERER'] ?? '');
+        $sameHost = $referer !== '' && parse_url($referer, PHP_URL_HOST) === parse_url(url('/'), PHP_URL_HOST);
+
+        return Response::redirect($sameHost ? $referer : url('/'));
+    }
+
+    public static function errorResponse(Request $request, int $status, string $message): Response
+    {
+        if ($request->wantsJson() || $request->isAjax()) {
+            return Response::json(['message' => $message], $status);
+        }
+        $titles = [403 => 'Acesso negado', 404 => 'Página não encontrada', 429 => 'Muitas tentativas', 500 => 'Algo deu errado'];
+
+        return Response::view('errors/error', [
+            'title' => $titles[$status] ?? 'Erro',
+            'status' => $status,
+            'message' => $message,
+        ], 'layouts/public', $status);
     }
 }

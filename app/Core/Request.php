@@ -76,8 +76,11 @@ final class Request
             }
         }
 
-        $scriptDir = str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')));
-        if ($scriptDir !== '/' && $scriptDir !== '.' && $scriptDir !== '\\') {
+        // Only a real script path marks a subdirectory install; the Vercel PHP runtime reports the
+        // requested path as SCRIPT_NAME, and stripping its dirname cut "/a/b/c" down to "/c".
+        $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        $scriptDir = str_ends_with($scriptName, '.php') ? dirname($scriptName) : '/';
+        if (!in_array($scriptDir, ['/', '.', '\\', '/api', '/public'], true)) {
             if ($uri === $scriptDir) {
                 $uri = '/';
             } elseif (str_starts_with($uri, $scriptDir . '/')) {
@@ -133,7 +136,7 @@ final class Request
 
     public function ip(): string
     {
-        return (string) ($this->server['REMOTE_ADDR'] ?? '0.0.0.0');
+        return client_ip();
     }
 
     public function userAgent(): string

@@ -4,57 +4,43 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
-use App\Core\Auth;
 use App\Core\Controller;
-use App\Core\Database;
+use App\Core\Db;
+use App\Core\HttpException;
+use App\Core\Request;
 use App\Core\Response;
-use App\Models\User;
 
+/** Every admin route also passes `auth` + `role:admin` middleware; master-only actions call Gate::master(). */
 abstract class AdminController extends Controller
 {
     /** @param array<string, mixed> $data */
-    protected function panel(string $view, array $data = []): Response
+    protected function render(string $view, array $data, int $status = 200): Response
     {
-        $data['user'] = $this->requireUser();
-
-        return $this->view($view, $data, 'layouts/admin');
+        return $this->view($view, $data, 'layouts/panel', $status);
     }
 
-    protected function audit(string $action, string $type, ?int $id, mixed $old = null, mixed $new = null): void
+    /** @return array{0: ?string, 1: ?string} validated Y-m-d range from ?de= / ?ate= */
+    protected function period(Request $request): array
     {
-        $admin = $this->requireUser();
-        $stmt = Database::pdo()->prepare(
-            'INSERT INTO audit_logs (admin_id, action, object_type, object_id, old_values, new_values, ip_address, created_at)
-             VALUES (:admin_id, :action, :object_type, :object_id, :old_values, :new_values, :ip, :created_at)'
-        );
-        $stmt->execute([
-            'admin_id' => $admin->id,
-            'action' => $action,
-            'object_type' => $type,
-            'object_id' => $id,
-            'old_values' => $old === null ? null : json_encode($old, JSON_UNESCAPED_UNICODE),
-            'new_values' => $new === null ? null : json_encode($new, JSON_UNESCAPED_UNICODE),
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0',
-            'created_at' => now(),
-        ]);
+        $from = (string) $request->query('de', '');
+        $to = (string) $request->query('ate', '');
+        $valid = static fn (string $d): bool => (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $d);
+
+        return [$valid($from) ? $from : null, $valid($to) ? $to : null];
     }
 
-    protected function actor(): User
+    /** @return array<string, mixed> */
+    protected function findByUuid(string $table, string $uuid, string $missing = 'Registro não encontrado.'): array
     {
-        return $this->requireUser();
+        $row = Db::first("SELECT * FROM {$table} WHERE uuid = :u", ['u' => $uuid]);
+
+        return $row ?? throw HttpException::notFound($missing);
     }
 
-    protected function canOrDeny(string $permission): ?Response
+    protected function reason(Request $request, string $field = 'reason', int $min = 5): ?string
     {
-        if (Auth::can($permission)) {
-            return null;
-        }
+        $reason = trim((string) $request->input($field, ''));
 
-        return Response::view('pages/errors/403', [
-            'title' => 'Acesso negado',
-            'authUser' => $this->user(),
-            'csrf' => csrf_token(),
-            'user' => $this->user(),
-        ], 'layouts/admin', 403);
+        return mb_strlen($reason) >= $min && mb_strlen($reason) <= 1000 ? $reason : null;
     }
 }

@@ -5,7 +5,9 @@
 *.sqlite-*
 *.log
 
-/storage/nexo.sqlite
+/public/uploads/
+/storage/private/
+/storage/tmp-*
 /storage/uploads/**
 !/storage/uploads/**/
 !/storage/uploads/**/.gitkeep

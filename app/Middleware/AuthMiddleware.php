@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\MiddlewareInterface;
 use App\Core\Request;
 use App\Core\Response;
+use App\Core\Session;
 use Closure;
 
 final class AuthMiddleware implements MiddlewareInterface
@@ -16,10 +17,14 @@ final class AuthMiddleware implements MiddlewareInterface
     {
         if (!Auth::check()) {
             if ($request->wantsJson() || $request->isAjax()) {
-                return Response::json(['message' => 'Não autenticado.'], 401);
+                return Response::json(['message' => 'Entre na sua conta para continuar.'], 401);
             }
+            if ($request->method() === 'GET') {
+                Session::set('intended', $request->path());
+            }
+            Session::flash('error', 'Entre na sua conta para continuar.');
 
-            return Response::redirect(url('/entrar'));
+            return Response::redirect(url('/login'));
         }
 
         return $next($request);
