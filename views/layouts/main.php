@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?= \App\Core\View::component('favicon') ?>
     <title><?= e($title ?? brand_name()) ?></title>
     <meta name="description" content="<?= e($metaDescription ?? setting('meta_description', '')) ?>">
     <link rel="canonical" href="<?= e(isset($canonicalPath) ? url($canonicalPath) : url($_SERVER['REQUEST_URI'] ?? '/')) ?>">

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?= \App\Core\View::component('favicon') ?>
     <title><?= e($title ?? 'Entrar') ?> · <?= e(setting('platform_name', 'CinquentaConto')) ?></title>
     <meta name="csrf-token" content="<?= e($csrf ?? csrf_token()) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
