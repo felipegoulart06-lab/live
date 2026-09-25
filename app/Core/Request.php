@@ -55,6 +55,13 @@ final class Request
         if (is_string($rewrite) && $rewrite !== '') {
             unset($query['__path']);
             $uri = '/' . ltrim(rawurldecode(str_replace('%2F', '/', $rewrite)), '/');
+            $fromRequest = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '');
+            if ($fromRequest !== '' && !preg_match('#/(?:api/)?index\.php$#', $fromRequest)) {
+                $requestPath = '/' . trim(str_replace('\\', '/', $fromRequest), '/');
+                if ($requestPath !== '/' && str_starts_with($requestPath, rtrim($uri, '/') . '/')) {
+                    $uri = $requestPath;
+                }
+            }
         } else {
             $uri = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
             $isScript = (bool) preg_match('#/(?:api/)?index\.php$#', $uri);

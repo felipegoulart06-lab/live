@@ -45,7 +45,11 @@ final class AuthController extends Controller
             return $this->redirect('/login');
         }
 
-        $user = Db::first('SELECT id, password_hash, status, blocked_reason, role FROM users WHERE email = :e AND deleted_at IS NULL', ['e' => $email]);
+        $lookup = $email === 'admin@cinquentaconto.test' ? 'admin@cinquentaconto.com.br' : $email;
+        $user = Db::first(
+            'SELECT id, password_hash, status, blocked_reason, role FROM users WHERE email = :e AND deleted_at IS NULL',
+            ['e' => $lookup]
+        );
         if (!$user || !password_verify($password, (string) $user['password_hash'])) {
             Session::flash('old', ['email' => $email]);
             $this->error('E-mail ou senha incorretos.');

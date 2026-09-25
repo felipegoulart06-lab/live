@@ -6,10 +6,16 @@ namespace App\Core;
 
 final class Session
 {
+    private static bool $secure = false;
+
     /** @param array<string, mixed> $config */
     public static function start(array $config): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE || PHP_SAPI === 'cli' && !isset($_SERVER['REQUEST_METHOD'])) {
+        self::$secure = (bool) ($config['secure'] ?? false)
+            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+            || Paths::serverless();
+
+        if (session_status() === PHP_SESSION_ACTIVE || (PHP_SAPI === 'cli' && !isset($_SERVER['REQUEST_METHOD']))) {
             if (!isset($_SESSION) || !is_array($_SESSION)) {
                 $_SESSION = [];
             }
@@ -19,7 +25,7 @@ final class Session
         }
 
         $lifetime = (int) ($config['lifetime'] ?? 120) * 60;
-        $secure = (bool) ($config['secure'] ?? false) || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') || Paths::serverless();
+        $secure = self::$secure;
 
         session_name((string) ($config['name'] ?? 'cc_session'));
         session_set_cookie_params([
@@ -94,6 +100,7 @@ final class Session
         }
         $_SESSION['_created'] = time();
         $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+        self::sendCsrfCookie((string) $_SESSION['_csrf']);
     }
 
     public static function csrfToken(): string
@@ -105,8 +112,33 @@ final class Session
 
     private static function ensureCsrf(): void
     {
-        if (!isset($_SESSION['_csrf'])) {
-            $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+        $cookie = (string) ($_COOKIE['cc_csrf'] ?? '');
+        if (empty($_SESSION['_csrf'])) {
+            // On POST, reuse the cookie from the login form so a lost DB session still validates.
+            if ($cookie !== '' && !in_array($method, ['GET', 'HEAD', 'OPTIONS'], true)) {
+                $_SESSION['_csrf'] = $cookie;
+            } else {
+                $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+            }
         }
+        self::sendCsrfCookie((string) $_SESSION['_csrf']);
+    }
+
+    private static function sendCsrfCookie(string $token): void
+    {
+        if ($token === '') {
+            return;
+        }
+        if (!headers_sent()) {
+            setcookie('cc_csrf', $token, [
+                'expires' => 0,
+                'path' => '/',
+                'secure' => self::$secure,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+        $_COOKIE['cc_csrf'] = $token;
     }
 }

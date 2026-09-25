@@ -32,8 +32,10 @@ No primeiro acesso o banco SQLite (`storage/cinquentaconto.sqlite`) é criado co
 | --- | --- | --- |
 | Admin master | `admin@cinquentaconto.com.br` | `CinquentaAdmin!234` |
 | Admin staff | `moderacao@cinquentaconto.com.br` | `Demo12345` |
-| Criador | `ana.freire@criador.demo` (e os outros `@criador.demo`) | `Demo12345` |
-| Empresa | `contato@casa-aurora-cosmeticos.demo` (e os outros `contato@*.demo`) | `Demo12345` |
+| Criador / anunciante | `anunciante@cinquentaconto.com.br` | `CinquentaCriador!234` |
+| Empresa | `empresa@cinquentaconto.com.br` | `CinquentaEmpresa!234` |
+| Criadores demo | `ana.freire@criador.demo` (e os outros `@criador.demo`) | `Demo12345` |
+| Empresas demo | `contato@casa-aurora-cosmeticos.demo` (e os outros `contato@*.demo`) | `Demo12345` |
 
 Troque as senhas antes de abrir o site ao público.
 

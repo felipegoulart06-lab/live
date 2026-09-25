@@ -20,8 +20,17 @@ final class Csrf
 
     public static function validate(?string $token): bool
     {
-        $session = Session::csrfToken();
+        if (!is_string($token) || $token === '') {
+            return false;
+        }
 
-        return is_string($token) && $token !== '' && hash_equals($session, $token);
+        $session = Session::csrfToken();
+        if (hash_equals($session, $token)) {
+            return true;
+        }
+
+        $cookie = (string) ($_COOKIE['cc_csrf'] ?? '');
+
+        return $cookie !== '' && hash_equals($cookie, $token);
     }
 }

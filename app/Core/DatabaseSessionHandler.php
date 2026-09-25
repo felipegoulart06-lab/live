@@ -29,7 +29,10 @@ final class DatabaseSessionHandler implements SessionHandlerInterface
             return '';
         }
 
-        return (string) base64_decode((string) $row['payload'], true);
+        $raw = (string) $row['payload'];
+        $decoded = base64_decode($raw, true);
+
+        return $decoded !== false ? $decoded : $raw;
     }
 
     public function write(string $id, string $data): bool

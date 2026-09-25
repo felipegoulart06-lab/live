@@ -4,6 +4,9 @@ use App\Core\Db;
 use App\Services\Messages;
 use App\Services\Notifier;
 
+if ($authUser === null) {
+    throw new RuntimeException('Painel sem usuário autenticado.');
+}
 $unreadNotifications = Notifier::unreadCount($authUser->id);
 $groups = [];
 if ($authUser->isAdmin()) {
@@ -34,6 +37,7 @@ if ($authUser->isAdmin()) {
             ['/admin/mensagens', 'Mensagens', 0],
             ['/admin/notificacoes', 'Notificações', 0],
             ['/admin/denuncias', 'Denúncias', $openReports],
+            ['/admin/avaliacoes', 'Avaliações', 0],
         ],
         'Conteúdo' => [
             ['/admin/categorias', 'Categorias', 0],
@@ -43,7 +47,9 @@ if ($authUser->isAdmin()) {
         ],
         'Plataforma' => [
             ['/admin/configuracoes', 'Configurações', 0],
-            ['/admin/paginas', 'Termos e páginas', 0],
+            ['/admin/paginas?pagina=termos', 'Termos', 0],
+            ['/admin/paginas?pagina=privacidade', 'Privacidade', 0],
+            ['/admin/paginas', 'Todas as páginas', 0],
         ],
         'Administração' => [
             ['/admin/atividade', 'Atividade', 0],
@@ -59,6 +65,7 @@ if ($authUser->isAdmin()) {
             ['/painel/anuncios', 'Todos', 0],
             ['/painel/anuncios?status=active', 'Ativos', 0],
             ['/painel/anuncios?status=draft', 'Rascunhos', 0],
+            ['/painel/anuncios/novo', 'Criar anúncio', 0],
         ],
         'Negócios' => [
             ['/painel/solicitacoes', 'Solicitações', $pendingRequests],

@@ -30,6 +30,7 @@ final class Application
         Database::connect($config->get('database') ?? []);
         Schema::install();
         self::ensureDemoData();
+        \App\Services\OperatorAccounts::ensure();
 
         self::$instance = new self(new Router(), $config);
         Session::start($config->get('session') ?? []);

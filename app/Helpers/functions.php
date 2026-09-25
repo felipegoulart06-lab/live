@@ -277,6 +277,9 @@ function nav_href_active(string $href): bool
     if ($query === [] && isset($_GET['status']) && (string) $_GET['status'] !== '' && str_contains($path, '/anuncios')) {
         return false;
     }
+    if ($query === [] && isset($_GET['pagina']) && (string) $_GET['pagina'] !== '' && $path === '/admin/paginas') {
+        return false;
+    }
 
     return true;
 }
