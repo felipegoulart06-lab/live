@@ -13,7 +13,8 @@ final class ContractQueries
     {
         $id = (int) $contract['id'];
         $info = Db::first(
-            'SELECT l.title AS listing_title, l.slug AS listing_slug, co.company_name, cop.display_name AS company_contact,
+            'SELECT l.title AS listing_title, l.slug AS listing_slug, l.cover_path AS listing_cover, lp.delivery_days,
+                    co.company_name, cop.display_name AS company_contact,
                     cp.display_name AS creator_name, cp.slug AS creator_slug, cp.avatar_path AS creator_avatar,
                     cv.uuid AS conversation_uuid, r.uuid AS request_uuid, r.code AS request_code
              FROM contracts c
@@ -21,6 +22,7 @@ final class ContractQueries
              JOIN companies co ON co.user_id = c.company_id
              JOIN profiles cop ON cop.user_id = c.company_id
              JOIN profiles cp ON cp.user_id = c.creator_id
+             LEFT JOIN listing_packages lp ON lp.id = c.package_id
              LEFT JOIN requests r ON r.id = c.request_id
              LEFT JOIN conversations cv ON cv.id = c.conversation_id
              WHERE c.id = :id',

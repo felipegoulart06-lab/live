@@ -82,8 +82,9 @@ final class ContractController extends AreaController
         $detail = ContractQueries::detail($row);
 
         return $this->view('area/contracts/pay', $detail + [
-            'title' => 'Pagar ' . $row['code'],
+            'title' => 'Pagamento seguro · ' . $row['code'],
             'noindex' => true,
+            'payPage' => true,
             'mpEnabled' => MercadoPago::configured(),
             'mpPublicKey' => MercadoPago::publicKey(),
             'payerEmail' => $user->email,

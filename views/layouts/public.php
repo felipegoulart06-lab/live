@@ -23,7 +23,7 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,620&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 </head>
-<body>
+<body class="<?= !empty($payPage) ? 'is-pay' : '' ?>">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 <?php if (!empty($preview) && !empty($listing)): ?>
     <div class="preview-bar" role="status">
@@ -31,12 +31,23 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
         <a href="<?= e(url(($authUser && $authUser->isAdmin() ? '/admin/anuncios/' : '/painel/anuncios/') . $listing['uuid'])) ?>">Voltar para a edição</a>
     </div>
 <?php endif; ?>
+<?php if (!empty($payPage)): ?>
+    <div class="pay-secure-bar" role="status">
+        <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            Ambiente 100% seguro
+        </span>
+        <span>Pagamento processado pelo Mercado Pago</span>
+        <span>Dados do cartão não passam pela <?= e(brand_name()) ?></span>
+    </div>
+<?php endif; ?>
 <header class="site-header">
-    <div class="header-inner">
+    <div class="header-inner<?= !empty($payPage) ? ' header-inner--pay' : '' ?>">
         <a class="brand" href="<?= e(url('/')) ?>">
             <img src="<?= e(asset('images/favicon-32.png')) ?>" alt="" width="26" height="26">
             <span><?= e(brand_name()) ?></span>
         </a>
+        <?php if (empty($payPage)): ?>
         <form class="header-search" action="<?= e(url('/anuncios')) ?>" method="get" role="search">
             <label class="sr-only" for="busca-topo">Buscar anúncios</label>
             <input id="busca-topo" type="search" name="q" value="<?= e($searchQuery) ?>" placeholder="Buscar por tipo de vídeo ou tema">
@@ -52,8 +63,12 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
             <?php endif; ?>
             <button class="icon-btn only-mobile" type="button" data-drawer="#menu-publico" aria-controls="menu-publico" aria-expanded="false">Menu</button>
         </nav>
+        <?php else: ?>
+        <p class="pay-header-status">Checkout transparente · pedido <strong><?= e($contract['code'] ?? '') ?></strong></p>
+        <span class="pay-lock">Pagamento criptografado</span>
+        <?php endif; ?>
     </div>
-    <?php if ($navCategories !== []): ?>
+    <?php if ($navCategories !== [] && empty($payPage)): ?>
         <nav class="cat-bar" aria-label="Categorias">
             <div class="cat-bar-inner">
                 <?php foreach ($navCategories as $cat): ?>

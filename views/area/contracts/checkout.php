@@ -1,6 +1,11 @@
-<div class="card card-pad stack-sm" id="checkout-transparente">
-    <h2 class="panel-title mb-0">Pague com Mercado Pago</h2>
-    <p class="muted small mb-0">Cartão ou Pix. Os dados do cartão não passam pelo nosso servidor.</p>
+<div class="card card-pad stack-sm pay-brick" id="checkout-transparente">
+    <div class="pay-brick-head">
+        <div>
+            <h2 class="panel-title mb-0">Pague com Mercado Pago</h2>
+            <p class="muted small mb-0">Ambiente seguro. Cartão ou Pix — os dados do cartão não passam pelo nosso servidor.</p>
+        </div>
+        <span class="pay-mp">Mercado Pago</span>
+    </div>
     <div id="mp-pix" class="mp-pix" hidden></div>
     <div
         id="mp-checkout"

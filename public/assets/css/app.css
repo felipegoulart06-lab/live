@@ -248,6 +248,21 @@ main.site-main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem
 .mp-pix { display: grid; gap: 0.7rem; justify-items: start; }
 .mp-pix img { width: 220px; height: 220px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
 .mp-pix textarea { font-size: 0.82rem; }
+.pay-secure-bar { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; justify-content: center; align-items: center; background: #16141f; color: #f4f1ea; font-size: 0.8rem; font-weight: 650; letter-spacing: 0.02em; padding: 0.55rem 1.25rem; }
+.pay-secure-bar span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.header-inner--pay { grid-template-columns: auto 1fr auto; }
+.pay-header-status { margin: 0; text-align: center; color: var(--ink-2); font-size: 0.92rem; }
+.pay-lock { font-size: 0.8rem; font-weight: 700; color: #1aa36b; border: 1px solid #b7e4cc; background: #f3fbf7; padding: 0.35rem 0.7rem; border-radius: 999px; white-space: nowrap; }
+.pay-brick-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.pay-mp { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #009ee3; border: 1px solid #cfeaf8; background: #f3fbff; padding: 0.28rem 0.55rem; border-radius: 999px; }
+.pay-assurances { margin: 0; padding: 0 0 0 1.1rem; color: var(--ink-2); font-size: 0.88rem; display: grid; gap: 0.4rem; }
+.pay-item { display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.9rem; }
+.pay-item img { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--line); }
+.pay-guarantee { background: #f3fbf7; border: 1px solid #b7e4cc; border-radius: var(--radius); padding: 0.95rem 1rem; }
+.pay-guarantee strong { display: block; margin-bottom: 0.35rem; }
+.pay-guarantee p { color: var(--ink-2); font-size: 0.88rem; }
+.pay-methods { margin: 0; text-align: center; font-size: 0.8rem; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+body.is-pay main.site-main { padding-bottom: 2.5rem; }
 .pay-steps { list-style: none; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin: 0 0 1.3rem; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--paper); }
 .pay-steps li { padding: 0.75rem 1rem; font-size: 0.88rem; font-weight: 650; color: var(--muted); border-right: 1px solid var(--line); }
 .pay-steps li:last-child { border-right: 0; }
