@@ -19,17 +19,31 @@ final class MercadoPagoClient
 
     public static function publicKey(): string
     {
-        return (string) config('mercadopago.public_key', '');
+        return self::credential('public_key', 'mp_public_key');
     }
 
     public static function accessToken(): string
     {
-        return (string) config('mercadopago.access_token', '');
+        return self::credential('access_token', 'mp_access_token');
     }
 
     public static function webhookSecret(): string
     {
-        return (string) config('mercadopago.webhook_secret', '');
+        return self::credential('webhook_secret', 'mp_webhook_secret');
+    }
+
+    private static function credential(string $configKey, string $settingKey): string
+    {
+        $fromEnv = trim((string) config('mercadopago.' . $configKey, ''));
+        if ($fromEnv !== '') {
+            return $fromEnv;
+        }
+
+        try {
+            return trim((string) Settings::get($settingKey, ''));
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     public static function notificationUrl(): string
