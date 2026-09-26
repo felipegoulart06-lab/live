@@ -10,9 +10,9 @@ final class Settings
 {
     public const DEFAULTS = [
         'platform_name' => ['CinquentaConto', 'general'],
-        'platform_tagline' => ['Horas de vídeo para a sua empresa. O tema é definido por quem paga.', 'general'],
+        'platform_tagline' => ['Horas de vídeo para a sua empresa. Contratação e pagamento só pela plataforma.', 'general'],
         'support_email' => ['suporte@cinquentaconto.com.br', 'general'],
-        'meta_description' => ['Contrate horas de vídeo com criadores verificados. A empresa define o tema; o contato fica dentro da plataforma.', 'seo'],
+        'meta_description' => ['Contrate horas de vídeo com anúncios revisados. Briefing, pagamento e entrega ficam na plataforma; contato externo não é exibido.', 'seo'],
         'platform_fee_percent' => ['15', 'business'],
         'request_expiry_hours' => ['72', 'business'],
         'min_package_hours' => ['1', 'business'],
@@ -21,8 +21,8 @@ final class Settings
         'max_images_per_listing' => ['8', 'business'],
         'require_listing_approval' => ['1', 'business'],
         'maintenance_mode' => ['0', 'general'],
-        'home_hero_title' => ['Encontre quem grava o vídeo da sua empresa', 'content'],
-        'home_hero_subtitle' => ['A empresa contrata horas de vídeo com criadores da plataforma. O tema é definido por quem paga, e telefone e WhatsApp do criador não aparecem no anúncio.', 'content'],
+        'home_hero_title' => ['Contrate horas de vídeo para a sua empresa', 'content'],
+        'home_hero_subtitle' => ['Escolha o anúncio, envie o briefing e pague dentro da plataforma. O tema é de quem contrata; telefone, WhatsApp e redes do criador não aparecem.', 'content'],
         'home_hero_image' => ['images/hero-studio.jpg', 'content'],
     ];
 

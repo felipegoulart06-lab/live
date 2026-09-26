@@ -8,7 +8,6 @@ $cover = $images[0] ?? null;
 $firstPackage = $packages[0] ?? null;
 $oldPackage = (string) old('package_id', $firstPackage['id'] ?? '');
 $oldAddons = array_map('strval', (array) old('addons', []));
-$location = trim(($listing['city'] ?? '') . ($listing['state'] ? '/' . $listing['state'] : ''), '/');
 $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_until'] >= date('Y-m-d');
 ?>
 <nav class="crumb" aria-label="Você está em">
@@ -22,7 +21,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
 <header class="product-head">
     <div>
         <h1><?= e($listing['title']) ?></h1>
-        <p class="lead mb-0"><?= e($listing['short_description']) ?></p>
+        <p class="lead mb-0"><?= e(redact_contact((string) $listing['short_description'])) ?></p>
         <div class="product-meta">
             <?php if ((int) $listing['rating_count'] > 0): ?>
                 <span><span class="stars" aria-hidden="true">★</span> <?= number_format((float) $listing['rating_avg'], 1, ',', '') ?> · <?= (int) $listing['rating_count'] ?> avaliações</span>
@@ -30,7 +29,6 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                 <span>Ainda sem avaliações</span>
             <?php endif; ?>
             <span><?= (int) $listing['contracts_count'] ?> contratos concluídos</span>
-            <?php if ($location !== ''): ?><span><?= e($location) ?></span><?php endif; ?>
         </div>
     </div>
     <?php if ($canAct): ?>
@@ -84,7 +82,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                     'additional_info' => 'Informações adicionais',
                 ] as $field => $label): ?>
                     <?php if (!empty($listing[$field])): ?>
-                        <div><h3><?= e($label) ?></h3><p><?= e($listing[$field]) ?></p></div>
+                        <div><h3><?= e($label) ?></h3><p><?= e(redact_contact((string) $listing[$field])) ?></p></div>
                     <?php endif; ?>
                 <?php endforeach; ?>
             </div>
@@ -116,7 +114,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
             <section class="panel faq" aria-labelledby="duvidas">
                 <h2 id="duvidas" class="panel-title">Perguntas frequentes</h2>
                 <?php foreach ($faqs as $faq): ?>
-                    <details><summary><?= e($faq['question']) ?></summary><p><?= e($faq['answer']) ?></p></details>
+                    <details><summary><?= e(redact_contact((string) $faq['question'])) ?></summary><p><?= e(redact_contact((string) $faq['answer'])) ?></p></details>
                 <?php endforeach; ?>
             </section>
         <?php endif; ?>
@@ -130,11 +128,11 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                     <?php foreach ($reviews as $review): ?>
                         <article class="review-card">
                             <header>
-                                <strong><?= e($review['company_name']) ?></strong>
+                                <strong><?= e(public_company_label()) ?></strong>
                                 <span class="stars" aria-label="<?= (int) $review['rating'] ?> de 5"><?= rating_stars((float) $review['rating']) ?></span>
                                 <time datetime="<?= e($review['created_at']) ?>"><?= e(fmt_date($review['created_at'])) ?></time>
                             </header>
-                            <?php if (!empty($review['comment'])): ?><p class="mb-0"><?= e($review['comment']) ?></p><?php endif; ?>
+                            <?php if (!empty($review['comment'])): ?><p class="mb-0"><?= e(redact_contact((string) $review['comment'])) ?></p><?php endif; ?>
                         </article>
                     <?php endforeach; ?>
                 </div>
@@ -143,7 +141,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
 
         <?php if ($others !== []): ?>
             <section aria-labelledby="outros">
-                <h2 id="outros" class="panel-title">Outros anúncios de <?= e($listing['display_name']) ?></h2>
+                <h2 id="outros" class="panel-title">Outros anúncios deste serviço</h2>
                 <div class="card-grid card-grid--3">
                     <?php foreach ($others as $item): ?><?= view('listing-card', ['item' => $item]) ?><?php endforeach; ?>
                 </div>
@@ -235,8 +233,8 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                     <span class="avatar avatar-lg" aria-hidden="true"><?= e(initials($listing['display_name'])) ?></span>
                 <?php endif; ?>
                 <div>
-                    <h2 id="criador" class="panel-title mb-0"><?= e($listing['display_name']) ?></h2>
-                    <p class="muted small mb-0"><?= e($listing['headline'] ?? '') ?></p>
+                    <h2 id="criador" class="panel-title mb-0"><?= e(public_first_name($listing['display_name'] ?? '')) ?></h2>
+                    <p class="muted small mb-0"><?= e(redact_contact((string) ($listing['headline'] ?? ''))) ?></p>
                     <div class="row" style="margin-top:.35rem">
                         <?php if (!empty($listing['is_verified'])): ?><span class="badge badge-verified">Verificado</span><?php endif; ?>
                         <?php if (is_online($listing['last_seen_at'] ?? null)): ?><span class="badge badge-live">Online agora</span><?php endif; ?>
@@ -245,19 +243,10 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
             </div>
             <dl class="facts">
                 <div><dt>Avaliação</dt><dd><?= (int) $listing['creator_rating_count'] > 0 ? number_format((float) $listing['creator_rating_avg'], 1, ',', '') . ' (' . (int) $listing['creator_rating_count'] . ')' : '—' ?></dd></div>
-                <div><dt>Contratos</dt><dd><?= (int) $listing['creator_contracts'] ?></dd></div>
-                <div><dt>Experiência</dt><dd><?= !empty($listing['experience_years']) ? (int) $listing['experience_years'] . ' anos' : '—' ?></dd></div>
-                <div><dt>Na plataforma desde</dt><dd><?= e(date('m/Y', strtotime((string) $listing['member_since']))) ?></dd></div>
+                <div><dt>Contratos na plataforma</dt><dd><?= (int) $listing['creator_contracts'] ?></dd></div>
                 <div><dt>Antecedência mínima</dt><dd><?= (int) $listing['min_notice_hours'] ?>h</dd></div>
             </dl>
-            <?php if ($availability !== []): ?>
-                <p class="small" style="margin-top:1rem"><strong>Disponibilidade</strong><br>
-                    <?php foreach ($availability as $slot): ?>
-                        <?= e(weekday_name((int) $slot['weekday'])) ?> <?= e(substr($slot['start_time'], 0, 5)) ?>–<?= e(substr($slot['end_time'], 0, 5)) ?><br>
-                    <?php endforeach; ?>
-                </p>
-            <?php endif; ?>
-            <a class="btn btn-ghost btn-block" href="<?= e(creator_url($listing['creator_slug'])) ?>">Ver perfil do criador</a>
+            <a class="btn btn-ghost btn-block" href="<?= e(creator_url($listing['creator_slug'])) ?>">Ver outros anúncios</a>
         </section>
 
         <?php if ($canAct && $isCompany): ?>
@@ -268,7 +257,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                     <label class="field"><span class="sr-only">Mensagem</span>
                         <textarea name="body" required minlength="2" maxlength="2000" rows="3" placeholder="Escreva sua dúvida sobre o serviço"></textarea>
                     </label>
-                    <p class="privacy-note">Telefones, e-mails e links de contato externo são ocultados automaticamente.</p>
+                    <p class="privacy-note">Telefone, e-mail e redes sociais são ocultados. O combinado vale só dentro da plataforma.</p>
                     <button class="btn btn-ink" type="submit">Enviar mensagem</button>
                 </form>
             </details>

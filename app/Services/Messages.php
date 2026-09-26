@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Db;
+use App\Core\HttpException;
 
 final class Messages
 {
@@ -30,6 +31,10 @@ final class Messages
 
     public static function post(int $conversationId, int $senderId, string $body): void
     {
+        $body = redact_contact(trim($body));
+        if (mb_strlen($body) < 2) {
+            throw new HttpException(422, 'Não envie telefone, e-mail ou rede social. O combinado fica nesta conversa.');
+        }
         $conversation = Db::first('SELECT * FROM conversations WHERE id = :id', ['id' => $conversationId]);
         if (!$conversation) {
             return;
@@ -51,7 +56,7 @@ final class Messages
         if ($recipientWasUpToDate) {
             $name = (string) Db::value('SELECT display_name FROM profiles WHERE user_id = :u', ['u' => $senderId]);
             $prefix = $isCompany ? '/painel/mensagens/' : '/empresa/mensagens/';
-            Notifier::send($recipient, 'message_new', 'Nova mensagem de ' . $name, mb_substr($body, 0, 140), $prefix . $conversation['uuid']);
+            Notifier::send($recipient, 'message_new', 'Nova mensagem de ' . public_first_name($name), mb_substr($body, 0, 140), $prefix . $conversation['uuid']);
         }
     }
 

@@ -4,7 +4,7 @@
         <h1>Solicitações</h1>
         <p><?= $isCreator ? 'Pedidos de horas enviados pelas empresas. Aceite para gerar o contrato.' : 'Pedidos de horas que você enviou aos criadores.' ?></p>
     </div>
-    <?php if (!$isCreator): ?><a class="btn btn-accent" href="<?= e(url('/anuncios')) ?>">Encontrar criadores</a><?php endif; ?>
+    <?php if (!$isCreator): ?><a class="btn btn-accent" href="<?= e(url('/anuncios')) ?>">Ver anúncios</a><?php endif; ?>
 </div>
 
 <nav class="tabs" aria-label="Filtrar por status">

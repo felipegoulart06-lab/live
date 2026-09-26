@@ -10,7 +10,7 @@
     </a>
     <div class="card-body">
         <p class="seller-line">
-            <?= e($item['display_name']) ?>
+            <?= e(public_first_name($item['display_name'] ?? '')) ?>
             <?php if (!empty($item['is_verified'])): ?><span class="badge badge-verified">Verificado</span><?php endif; ?>
         </p>
         <h3><a class="clamp" href="<?= e(listing_url($item['slug'])) ?>"><?= e($item['title']) ?></a></h3>

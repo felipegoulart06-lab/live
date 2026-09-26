@@ -108,10 +108,10 @@ final class ProfileController extends AreaController
             }
             if ($user->isCreator()) {
                 $profile += [
-                    'headline' => $data['headline'],
-                    'bio' => $data['bio'],
+                    'headline' => $data['headline'] !== null ? redact_contact((string) $data['headline']) : null,
+                    'bio' => $data['bio'] !== null ? redact_contact((string) $data['bio']) : null,
                     'experience_years' => $data['experience_years'] !== null ? (int) $data['experience_years'] : null,
-                    'specialties' => $data['specialties'],
+                    'specialties' => $data['specialties'] !== null ? redact_contact((string) $data['specialties']) : null,
                 ];
             } else {
                 Db::update('companies', [

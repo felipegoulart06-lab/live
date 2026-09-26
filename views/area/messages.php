@@ -5,7 +5,7 @@ $hasThread = isset($conversation);
 <div class="page-title">
     <div>
         <h1>Mensagens</h1>
-        <p>Converse dentro da plataforma. Telefones, e-mails e links de contato externo são ocultados automaticamente.</p>
+        <p>Converse aqui. Telefone, e-mail, Instagram, WhatsApp e outros contatos são ocultados. Combinado fora da plataforma não tem cobertura da CinquentaConto.</p>
     </div>
 </div>
 

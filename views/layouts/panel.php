@@ -159,7 +159,7 @@ if ($authUser->isAdmin()) {
                 <?php if ($authUser->isCreator()): ?>
                     <a class="btn btn-accent btn-sm" href="<?= e(url('/painel/anuncios/novo')) ?>">+ Criar anúncio</a>
                 <?php elseif ($authUser->isCompany()): ?>
-                    <a class="btn btn-accent btn-sm" href="<?= e(url('/anuncios')) ?>">Encontrar criadores</a>
+                    <a class="btn btn-accent btn-sm" href="<?= e(url('/anuncios')) ?>">Ver anúncios</a>
                 <?php endif; ?>
                 <a class="text-link small" href="<?= e(url('/anuncios')) ?>">Ver o site</a>
                 <a class="bell" href="<?= e(url('/notificacoes')) ?>">

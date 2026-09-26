@@ -3,7 +3,7 @@
         <h1>Olá, <?= e($authUser->firstName()) ?></h1>
         <p>Acompanhe suas solicitações, contratos e avaliações.</p>
     </div>
-    <a class="btn btn-accent" href="<?= e(url('/anuncios')) ?>">Encontrar criadores</a>
+    <a class="btn btn-accent" href="<?= e(url('/anuncios')) ?>">Ver anúncios</a>
 </div>
 
 <?php foreach ($toReview as $c): ?>

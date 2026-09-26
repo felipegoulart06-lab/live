@@ -1,13 +1,12 @@
 <?php $f = static fn (string $key): string => (string) ($filters[$key] ?? ''); ?>
-<nav class="crumb" aria-label="Você está em"><a href="<?= e(url('/')) ?>">Início</a><span aria-hidden="true">/</span><span>Criadores</span></nav>
+<nav class="crumb" aria-label="Você está em"><a href="<?= e(url('/')) ?>">Início</a><span aria-hidden="true">/</span><span>Anúncios por perfil</span></nav>
 <header class="page-head">
-    <h1>Criadores</h1>
-    <p class="lead">Pessoas que vendem horas de vídeo com o próprio rosto, com anúncios revisados pela equipe.</p>
+    <h1>Quem grava na plataforma</h1>
+    <p class="lead">Perfis de serviço com anúncios de horas de vídeo. Nome completo, cidade, redes e telefone não são publicados.</p>
 </header>
 
-<form class="toolbar" method="get" action="<?= e(url('/criadores')) ?>" aria-label="Filtrar criadores">
-    <label class="field grow"><span>Buscar</span><input type="search" name="q" value="<?= e($f('q')) ?>" placeholder="Nome, especialidade…"></label>
-    <label class="field"><span>Cidade</span><input name="cidade" value="<?= e($f('cidade')) ?>"></label>
+<form class="toolbar" method="get" action="<?= e(url('/criadores')) ?>" aria-label="Filtrar">
+    <label class="field grow"><span>Buscar</span><input type="search" name="q" value="<?= e($f('q')) ?>" placeholder="Tipo de vídeo ou especialidade"></label>
     <label class="field"><span>Ordenar</span>
         <select name="ordem">
             <?php foreach (['' => 'Relevância', 'avaliacao' => 'Melhor avaliados', 'contratados' => 'Mais contratados', 'novos' => 'Mais novos'] as $k => $label): ?>
@@ -20,7 +19,7 @@
 </form>
 
 <?php if ($result['rows'] === []): ?>
-    <?= view('empty', ['title' => 'Nenhum criador encontrado', 'message' => 'Tente outra busca ou remova os filtros.', 'action' => 'Ver todos', 'actionUrl' => url('/criadores')]) ?>
+    <?= view('empty', ['title' => 'Nenhum anúncio encontrado', 'message' => 'Tente outra busca ou veja o catálogo de anúncios.', 'action' => 'Ver anúncios', 'actionUrl' => url('/anuncios')]) ?>
 <?php else: ?>
     <div class="card-grid">
         <?php foreach ($result['rows'] as $item): ?><?= view('creator-card', ['item' => $item]) ?><?php endforeach; ?>

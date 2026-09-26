@@ -278,6 +278,8 @@ final class ListingController extends AreaController
         if ($response = $this->invalid($data, $this->stepOneRules(), self::LABELS, $back)) {
             return $response;
         }
+        $data['title'] = redact_contact($data['title']);
+        $data['short_description'] = redact_contact($data['short_description']);
         $update = $data + ['updated_at' => now()];
         if ($listing['status'] === 'draft' && $listing['title'] !== $data['title']) {
             $update['slug'] = Listings::uniqueSlug($data['title'], (int) $listing['id']);
@@ -311,6 +313,9 @@ final class ListingController extends AreaController
 
             return $this->redirect($back);
         }
+        foreach (['description', 'what_company_buys', 'what_company_provides', 'how_it_works', 'framing', 'additional_info'] as $field) {
+            $data[$field] = redact_contact($data[$field]);
+        }
 
         $questions = (array) $request->input('faq_question', []);
         $answers = (array) $request->input('faq_answer', []);
@@ -327,7 +332,7 @@ final class ListingController extends AreaController
 
                 return $this->redirect($back);
             }
-            $faqs[] = [$question, $answer];
+            $faqs[] = [redact_contact($question), redact_contact($answer)];
         }
         if (count($faqs) > 8) {
             $this->error('Use no máximo 8 perguntas frequentes.');

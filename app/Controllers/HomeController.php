@@ -8,14 +8,13 @@ use App\Core\Controller;
 use App\Core\Db;
 use App\Core\Request;
 use App\Core\Response;
-use App\Queries\CreatorQueries;
 use App\Queries\ListingQueries;
 
 final class HomeController extends Controller
 {
     public function index(Request $request): Response
     {
-        $featuredCreators = CreatorQueries::highlighted('featured_creators', 8);
+        $featuredCreators = [];
         $mostHired = ListingQueries::highlighted('most_hired', 10);
         if ($mostHired === []) {
             $mostHired = ListingQueries::cards('l.contracts_count DESC, l.rating_avg DESC', 10);

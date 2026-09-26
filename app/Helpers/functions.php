@@ -181,24 +181,42 @@ function initials(?string $name): string
 {
     $parts = preg_split('/\s+/u', trim((string) $name)) ?: [];
     $first = mb_substr($parts[0] ?? '?', 0, 1);
-    $last = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
 
-    return mb_strtoupper($first . $last);
+    return mb_strtoupper($first);
 }
 
-/** Public texts must not carry phone numbers, e-mails or messenger links. */
+/** First name only on public pages so the catalog is the service, not the person. */
+function public_first_name(?string $name): string
+{
+    $name = trim((string) $name);
+    if ($name === '') {
+        return 'Criador';
+    }
+    $parts = preg_split('/\s+/u', $name) ?: [];
+
+    return (string) ($parts[0] ?? 'Criador');
+}
+
+function public_company_label(): string
+{
+    return 'Empresa';
+}
+
+/** Public texts must not carry phone numbers, e-mails, handles or social links. */
 function redact_contact(string $text): string
 {
     $text = preg_replace('/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i', '[contato oculto]', $text) ?? $text;
     $text = preg_replace('/(?:\+?\d{1,3}[\s.-]*)?(?:\(?\d{2}\)?[\s.-]*)?\d{4,5}[\s.-]?\d{4}/', '[contato oculto]', $text) ?? $text;
-    $text = preg_replace('#(?:https?://)?(?:t\.me|wa\.me|api\.whatsapp\.com)/\S+#i', '[contato oculto]', $text) ?? $text;
+    $text = preg_replace('#(?:https?://)?(?:www\.)?(?:t\.me|wa\.me|api\.whatsapp\.com|instagram\.com|instagr\.am|facebook\.com|fb\.com|tiktok\.com|x\.com|twitter\.com|linkedin\.com|youtube\.com/@|discord\.gg|kwai\.app)/[^\s<>]+#i', '[contato oculto]', $text) ?? $text;
+    $text = preg_replace('/(?:^|[\s])@[a-z0-9._]{2,30}\b/iu', ' [contato oculto]', $text) ?? $text;
+    $text = preg_replace('/\b(?:whats?\s*app|telegram|instagram|tiktok|linkedin|facebook|discord|kwai)\b[\s:\/@]*[a-z0-9._]*/iu', '[contato oculto]', $text) ?? $text;
 
-    return trim($text);
+    return trim(preg_replace('/[ \t]{2,}/', ' ', $text) ?? $text);
 }
 
 function nl2p(?string $text): string
 {
-    $blocks = preg_split("/\R{2,}/", trim((string) $text)) ?: [];
+    $blocks = preg_split("/\R{2,}/", redact_contact(trim((string) $text))) ?: [];
     $html = '';
     foreach ($blocks as $block) {
         if (trim($block) !== '') {

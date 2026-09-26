@@ -6,7 +6,7 @@ $v = static fn (array $row, string $k): string => (string) ($row[$k] ?? '');
 <div class="page-title">
     <div>
         <h1>Perfil</h1>
-        <p><?= $isCreator ? 'As informações abaixo aparecem no seu perfil público e nos seus anúncios, exceto telefone e e-mail.' : 'Dados da empresa. Telefone, CNPJ e e-mail não são exibidos para os criadores.' ?></p>
+        <p><?= $isCreator ? 'No ar, o público vê só o primeiro nome, o tipo de serviço e os anúncios. Telefone, cidade e redes não são publicados.' : 'CNPJ, telefone, e-mail e site não são exibidos para os criadores no catálogo público.' ?></p>
     </div>
     <?php if ($isCreator): ?><a class="btn btn-ghost" href="<?= e(creator_url($p['slug'])) ?>">Ver perfil público</a><?php endif; ?>
 </div>
@@ -17,10 +17,10 @@ $v = static fn (array $row, string $k): string => (string) ($row[$k] ?? '');
             <?= csrf_field() ?>
             <h2 class="panel-title mb-0"><?= $isCreator ? 'Dados do perfil' : 'Dados da empresa' ?></h2>
             <div class="form-grid">
-                <?= view('field', ['name' => 'display_name', 'label' => $isCreator ? 'Nome público' : 'Seu nome', 'value' => $v($p, 'display_name'), 'attrs' => 'required maxlength="80"']) ?>
+                    <?= view('field', ['name' => 'display_name', 'label' => $isCreator ? 'Nome (só o primeiro aparece no site)' : 'Seu nome', 'value' => $v($p, 'display_name'), 'attrs' => 'required maxlength="80"']) ?>
                 <?php if ($isCreator): ?>
-                    <?= view('field', ['name' => 'headline', 'label' => 'Título profissional', 'optional' => true, 'value' => $v($p, 'headline'), 'attrs' => 'maxlength="120" placeholder="Ex.: Apresentadora para institucional"']) ?>
-                    <?= view('field', ['name' => 'bio', 'label' => 'Biografia', 'type' => 'textarea', 'span' => true, 'value' => $v($p, 'bio'), 'hint' => 'Conte sua experiência em frente à câmera. Dados de contato não são permitidos.', 'attrs' => 'rows="5" maxlength="2000" data-count="2000"']) ?>
+                    <?= view('field', ['name' => 'headline', 'label' => 'Tipo de serviço', 'optional' => true, 'value' => $v($p, 'headline'), 'hint' => 'Ex.: Institucional e treinamento. Sem redes sociais.', 'attrs' => 'maxlength="120" placeholder="Ex.: Institucional e treinamento"']) ?>
+                    <?= view('field', ['name' => 'bio', 'label' => 'Sobre o serviço', 'type' => 'textarea', 'span' => true, 'value' => $v($p, 'bio'), 'hint' => 'Descreva o que a empresa contrata (formato, entrega, revisões). Sem biografia pessoal, Instagram, WhatsApp ou telefone.', 'attrs' => 'rows="5" maxlength="2000" data-count="2000"']) ?>
                     <?= view('field', ['name' => 'specialties', 'label' => 'Especialidades', 'optional' => true, 'value' => $v($p, 'specialties'), 'hint' => 'Separe por vírgula.', 'attrs' => 'maxlength="300"']) ?>
                     <?= view('field', ['name' => 'experience_years', 'label' => 'Anos de experiência', 'type' => 'number', 'optional' => true, 'value' => $v($p, 'experience_years'), 'attrs' => 'min="0" max="60"']) ?>
                 <?php else: ?>
@@ -41,7 +41,7 @@ $v = static fn (array $row, string $k): string => (string) ($row[$k] ?? '');
             <form class="card card-pad form" id="disponibilidade" method="post" action="<?= e(url('/painel/perfil/disponibilidade')) ?>">
                 <?= csrf_field() ?>
                 <h2 class="panel-title mb-0">Disponibilidade</h2>
-                <p class="muted small mb-0">Dias e horários em que você costuma gravar. Aparece no anúncio para as empresas.</p>
+                <p class="muted small mb-0">Usado no agendamento interno. Horários da semana não aparecem no anúncio público.</p>
                 <div class="table-wrap">
                     <table class="table">
                         <thead><tr><th scope="col">Dia</th><th scope="col">Início</th><th scope="col">Fim</th></tr></thead>

@@ -39,12 +39,11 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
         </a>
         <form class="header-search" action="<?= e(url('/anuncios')) ?>" method="get" role="search">
             <label class="sr-only" for="busca-topo">Buscar anúncios</label>
-            <input id="busca-topo" type="search" name="q" value="<?= e($searchQuery) ?>" placeholder="Buscar por tipo de vídeo, criador ou tema">
+            <input id="busca-topo" type="search" name="q" value="<?= e($searchQuery) ?>" placeholder="Buscar por tipo de vídeo ou tema">
             <button class="btn btn-ink" type="submit">Buscar</button>
         </form>
         <nav class="header-actions" aria-label="Principal">
             <a class="text-link hide-md" href="<?= e(url('/anuncios')) ?>">Anúncios</a>
-            <a class="text-link hide-md" href="<?= e(url('/criadores')) ?>">Criadores</a>
             <?php if ($authUser): ?>
                 <a class="btn btn-ghost hide-md" href="<?= e(url($authUser->homePath())) ?>">Meu painel</a>
             <?php else: ?>
@@ -69,7 +68,6 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
     <nav class="drawer-panel" aria-label="Menu">
         <button class="icon-btn" type="button" data-close-drawer>Fechar</button>
         <a href="<?= e(url('/anuncios')) ?>">Anúncios</a>
-        <a href="<?= e(url('/criadores')) ?>">Criadores</a>
         <a href="<?= e(url('/como-funciona')) ?>">Como funciona</a>
         <a href="<?= e(url('/ajuda')) ?>">Ajuda</a>
         <?php if ($authUser): ?>
@@ -100,14 +98,13 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
         </div>
         <div>
             <p class="footer-heading">Empresas</p>
-            <a href="<?= e(url('/anuncios')) ?>">Encontrar criadores</a>
+            <a href="<?= e(url('/anuncios')) ?>">Ver anúncios</a>
             <a href="<?= e(url('/como-funciona')) ?>">Como funciona</a>
             <a href="<?= e(url('/cadastro?tipo=empresa')) ?>">Cadastrar empresa</a>
         </div>
         <div>
             <p class="footer-heading">Criadores</p>
-            <a href="<?= e(url('/cadastro?tipo=criador')) ?>">Anunciar minhas horas</a>
-            <a href="<?= e(url('/criadores')) ?>">Criadores na plataforma</a>
+            <a href="<?= e(url('/cadastro?tipo=criador')) ?>">Anunciar horas de vídeo</a>
             <a href="<?= e(url('/ajuda')) ?>">Perguntas frequentes</a>
         </div>
         <div>
@@ -118,7 +115,7 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
             <a href="<?= e(url('/contato')) ?>">Contato</a>
         </div>
     </div>
-    <p class="footer-copy">© <?= date('Y') ?> <?= e(brand_name()) ?>. Contratações e pagamentos acontecem dentro da plataforma.</p>
+    <p class="footer-copy">© <?= date('Y') ?> <?= e(brand_name()) ?>. Contratação, mensagem e pagamento só pela plataforma.</p>
 </footer>
 <div class="toast-region" id="toast-region" aria-live="polite"></div>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
