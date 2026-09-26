@@ -42,6 +42,67 @@ final class OperatorAccounts
             'city' => 'São Paulo',
             'state' => 'SP',
         ]);
+
+        self::ensureCompanyCheckoutFixture();
+    }
+
+    /** Operator company needs a payable contract so Mercado Pago can be tested. */
+    private static function ensureCompanyCheckoutFixture(): void
+    {
+        try {
+            $email = mb_strtolower(trim((string) env('SEED_COMPANY_EMAIL', 'empresa@cinquentaconto.com.br')));
+            $company = Db::first("SELECT id FROM users WHERE email = :e AND role = 'company'", ['e' => $email]);
+            if (!$company) {
+                return;
+            }
+            $companyId = (int) $company['id'];
+            Db::run(
+                "UPDATE companies SET document = :d WHERE user_id = :u AND (document IS NULL OR TRIM(document) = '')",
+                ['d' => '19119119100', 'u' => $companyId]
+            );
+            $open = (int) Db::value(
+                "SELECT COUNT(*) FROM contracts WHERE company_id = :u AND status = 'awaiting_payment'",
+                ['u' => $companyId]
+            );
+            if ($open > 0) {
+                return;
+            }
+            $pending = Db::first(
+                "SELECT * FROM requests WHERE company_id = :u AND status = 'pending' ORDER BY id DESC LIMIT 1",
+                ['u' => $companyId]
+            );
+            if ($pending) {
+                Deals::acceptRequest($pending, (int) $pending['creator_id']);
+
+                return;
+            }
+            $listing = Db::first(
+                "SELECT * FROM listings WHERE status = 'active' AND deleted_at IS NULL ORDER BY id DESC LIMIT 1"
+            );
+            if (!$listing) {
+                return;
+            }
+            $package = Db::first(
+                'SELECT * FROM listing_packages WHERE listing_id = :l ORDER BY price_cents ASC LIMIT 1',
+                ['l' => (int) $listing['id']]
+            );
+            if (!$package) {
+                return;
+            }
+            $created = Deals::createRequest($companyId, $listing, (int) $package['id'], [], [
+                'theme' => 'Teste de checkout Mercado Pago',
+                'briefing' => 'Contrato de teste para Checkout Transparente via Orders.',
+                'message' => null,
+                'desired_date' => null,
+                'desired_time' => null,
+            ]);
+            $request = Db::first('SELECT * FROM requests WHERE uuid = :u', ['u' => $created['uuid']]);
+            if ($request) {
+                Deals::acceptRequest($request, (int) $listing['creator_id']);
+            }
+        } catch (\Throwable) {
+            // Demo fixture must not take the site down.
+        }
     }
 
     /** @param array<string, mixed> $data */
