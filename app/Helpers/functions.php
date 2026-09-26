@@ -409,7 +409,12 @@ function status_badge(string $domain, ?string $status): string
 
 function view(string $component, array $data = []): string
 {
-    return \App\Core\View::component($component, $data);
+    $inComponents = BASE_PATH . '/views/components/' . $component . '.php';
+    if (is_file($inComponents)) {
+        return \App\Core\View::component($component, $data);
+    }
+
+    return \App\Core\View::render($component, $data, null);
 }
 
 function client_ip(): string

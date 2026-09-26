@@ -21,11 +21,11 @@ final class ContractQueries
              JOIN companies co ON co.user_id = c.company_id
              JOIN profiles cop ON cop.user_id = c.company_id
              JOIN profiles cp ON cp.user_id = c.creator_id
-             JOIN requests r ON r.id = c.request_id
+             LEFT JOIN requests r ON r.id = c.request_id
              LEFT JOIN conversations cv ON cv.id = c.conversation_id
              WHERE c.id = :id',
             ['id' => $id]
-        );
+        ) ?: [];
 
         return [
             'contract' => $contract + $info,
