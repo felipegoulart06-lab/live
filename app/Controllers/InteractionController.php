@@ -52,9 +52,8 @@ final class InteractionController extends Controller
 
         $addonIds = array_values(array_filter(array_map('intval', (array) $request->input('addons', [])), static fn (int $id): bool => $id > 0));
         $contractUuid = Deals::checkoutNow($user->id, $listing, (int) $data['package_id'], $addonIds, $data);
-        $this->success('Pedido criado. Pague com cartão ou Pix para confirmar.');
 
-        return $this->redirect('/empresa/contratos/' . $contractUuid . '#checkout-transparente');
+        return $this->redirect('/empresa/contratos/' . $contractUuid . '/checkout');
     }
 
     public function message(Request $request): Response

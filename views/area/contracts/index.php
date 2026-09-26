@@ -19,7 +19,7 @@
 </form>
 
 <?php if ($result['rows'] === []): ?>
-    <?= view('empty', ['title' => 'Nenhum contrato encontrado', 'message' => $isCreator ? 'Os contratos aparecem quando você aceita uma solicitação.' : 'Os contratos aparecem quando o criador aceita a sua solicitação.']) ?>
+    <?= view('empty', ['title' => 'Nenhum contrato encontrado', 'message' => $isCreator ? 'Os contratos aparecem quando uma empresa compra horas no seu anúncio.' : 'Compre horas em um anúncio. O pagamento abre na hora no Mercado Pago.']) ?>
 <?php else: ?>
     <div class="table-wrap">
         <table class="table">
@@ -27,7 +27,7 @@
             <tbody>
             <?php foreach ($result['rows'] as $c): ?>
                 <tr>
-                    <td><a href="<?= e(url($area . '/contratos/' . $c['uuid'])) ?>"><strong><?= e($c['code']) ?></strong></a><small><?= e(fmt_date($c['created_at'])) ?></small></td>
+                    <td><a href="<?= e(url($area . '/contratos/' . $c['uuid'] . (!$isCreator && $c['status'] === 'awaiting_payment' ? '/checkout' : ''))) ?>"><strong><?= e($c['code']) ?></strong></a><small><?= e(fmt_date($c['created_at'])) ?></small></td>
                     <td><?= e($isCreator ? $c['company_name'] : $c['creator_name']) ?></td>
                     <td><?= e($c['listing_title']) ?><small><?= (int) $c['hours'] ?>h</small></td>
                     <td class="nowrap"><?= $c['scheduled_date'] ? e(fmt_date($c['scheduled_date'])) . ($c['scheduled_time'] ? ' ' . e(substr($c['scheduled_time'], 0, 5)) : '') : '<span class="muted">A combinar</span>' ?></td>

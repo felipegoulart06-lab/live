@@ -52,6 +52,9 @@ final class ContractController extends AreaController
     public function show(Request $request): Response
     {
         $row = Gate::ownContract((string) $request->param('id'));
+        if ($this->user()->isCompany() && $row['status'] === 'awaiting_payment') {
+            return $this->redirect('/empresa/contratos/' . $row['uuid'] . '/checkout');
+        }
         $company = $this->user()->isCompany()
             ? \App\Core\Db::first('SELECT document FROM companies WHERE user_id = :u', ['u' => $this->user()->id])
             : null;
@@ -63,6 +66,29 @@ final class ContractController extends AreaController
             'payerEmail' => $this->user()->email,
             'payerDocument' => MercadoPago::sanitizeDocument((string) ($company['document'] ?? '')),
         ]);
+    }
+
+    public function checkout(Request $request): Response
+    {
+        $user = $this->user();
+        if (!$user->isCompany()) {
+            throw HttpException::forbidden();
+        }
+        $row = Gate::ownContract((string) $request->param('id'));
+        if ($row['status'] !== 'awaiting_payment') {
+            return $this->redirect('/empresa/contratos/' . $row['uuid']);
+        }
+        $company = Db::first('SELECT document FROM companies WHERE user_id = :u', ['u' => $user->id]);
+        $detail = ContractQueries::detail($row);
+
+        return $this->view('area/contracts/pay', $detail + [
+            'title' => 'Pagar ' . $row['code'],
+            'noindex' => true,
+            'mpEnabled' => MercadoPago::configured(),
+            'mpPublicKey' => MercadoPago::publicKey(),
+            'payerEmail' => $user->email,
+            'payerDocument' => MercadoPago::sanitizeDocument((string) ($company['document'] ?? '')),
+        ], 'layouts/public');
     }
 
     public function start(Request $request): Response

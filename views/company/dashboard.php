@@ -15,7 +15,7 @@
 
 <div class="stats">
     <a class="stat" href="<?= e(url('/empresa/solicitacoes?status=pending')) ?>"><span>Aguardando resposta</span><strong><?= (int) $stats['pending_requests'] ?></strong><small>Solicitações enviadas</small></a>
-    <a class="stat stat--accent" href="<?= e(url('/empresa/contratos?status=awaiting_payment')) ?>"><span>Aguardando pagamento</span><strong><?= (int) $stats['awaiting_payment'] ?></strong><small>Contratos aceitos</small></a>
+    <a class="stat stat--accent" href="<?= e(url('/empresa/contratos?status=awaiting_payment')) ?>"><span>Aguardando pagamento</span><strong><?= (int) $stats['awaiting_payment'] ?></strong><small>Checkout Mercado Pago</small></a>
     <a class="stat" href="<?= e(url('/empresa/contratos')) ?>"><span>Em andamento</span><strong><?= (int) $stats['open_contracts'] ?></strong><small><?= (int) $stats['completed'] ?> concluídos</small></a>
     <div class="stat"><span>Investido</span><strong><?= e(money($stats['invested'])) ?></strong><small><?= (int) $stats['hours'] ?>h de vídeo entregues</small></div>
 </div>
@@ -44,7 +44,7 @@
             <ul class="list">
                 <?php foreach ($openContracts as $c): ?>
                     <li>
-                        <a href="<?= e(url('/empresa/contratos/' . $c['uuid'])) ?>"><strong><?= e($c['code']) ?> · <?= e($c['creator_name']) ?></strong><small><?= (int) $c['hours'] ?>h · <?= e(money($c['total_cents'])) ?><?= $c['scheduled_date'] ? ' · ' . e(fmt_date($c['scheduled_date'])) : '' ?></small></a>
+                        <a href="<?= e(url('/empresa/contratos/' . $c['uuid'] . ($c['status'] === 'awaiting_payment' ? '/checkout' : ''))) ?>"><strong><?= e($c['code']) ?> · <?= e($c['creator_name']) ?></strong><small><?= (int) $c['hours'] ?>h · <?= e(money($c['total_cents'])) ?><?= $c['scheduled_date'] ? ' · ' . e(fmt_date($c['scheduled_date'])) : '' ?></small></a>
                         <?= status_badge('contract', $c['status']) ?>
                     </li>
                 <?php endforeach; ?>

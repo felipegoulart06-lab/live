@@ -4,6 +4,10 @@
 
     var publicKey = mount.getAttribute('data-public-key') || '';
     var amount = parseFloat(mount.getAttribute('data-amount') || '0');
+    if (!publicKey || amount <= 0) {
+        toast('Checkout indisponível. Recarregue a página.');
+        return;
+    }
     var email = mount.getAttribute('data-email') || '';
     var doc = (mount.getAttribute('data-doc') || '').replace(/\D+/g, '');
     var payUrl = mount.getAttribute('data-pay') || '';

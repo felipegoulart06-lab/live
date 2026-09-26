@@ -170,7 +170,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                 <?php if ($addons !== []): ?>
                     <fieldset class="upsell">
                         <legend>Adicione à sua compra</legend>
-                        <p class="muted small mb-0">Quanto mais adicionais, mais completo fica o vídeo.</p>
+                        <p class="muted small mb-0">Marque extras para o vídeo render mais — o total atualiza na hora.</p>
                         <?php foreach ($addons as $addon): ?>
                             <label class="upsell-row<?= in_array((string) $addon['id'], $oldAddons, true) ? ' is-on' : '' ?>">
                                 <input type="checkbox" name="addons[]" value="<?= (int) $addon['id'] ?>" data-extra data-price="<?= (int) $addon['price_cents'] ?>" data-days="<?= (int) $addon['extra_days'] ?>" <?= in_array((string) $addon['id'], $oldAddons, true) ? 'checked' : '' ?>>
@@ -184,28 +184,33 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                         <?php endforeach; ?>
                     </fieldset>
                 <?php endif; ?>
-                <div class="buy-summary">
-                    <div class="buy-price">
-                        <span class="muted small">Total</span>
-                        <strong data-total><?= e(money($firstPackage['price_cents'])) ?></strong>
-                        <span class="muted small" data-days-label><?= (int) $firstPackage['hours'] ?>h de vídeo · <?= (int) $firstPackage['delivery_days'] ?> dias</span>
+                <div class="buy-cta">
+                    <div class="buy-summary">
+                        <div class="buy-price">
+                            <span class="muted small">Total</span>
+                            <strong data-total><?= e(money($firstPackage['price_cents'])) ?></strong>
+                            <span class="muted small" data-days-label><?= (int) $firstPackage['hours'] ?>h de vídeo · <?= (int) $firstPackage['delivery_days'] ?> dias</span>
+                        </div>
                     </div>
+                    <?php if ($preview): ?>
+                        <p class="privacy-note">Na pré-visualização a compra fica desativada.</p>
+                    <?php elseif (!$authUser): ?>
+                        <a class="btn btn-buy btn-block" data-buy-label href="<?= e(url('/login?next=' . rawurlencode('/anuncios/' . $listing['slug'] . '#contratar'))) ?>">Comprar agora <?= e(money($firstPackage['price_cents'])) ?></a>
+                        <p class="privacy-note">Entre com a conta da empresa. O pagamento é no checkout transparente do Mercado Pago.</p>
+                    <?php elseif (!$isCompany): ?>
+                        <p class="privacy-note">Só contas de empresa compram horas. Você está conectado como <?= $authUser->isCreator() ? 'criador' : 'administrador' ?>.</p>
+                    <?php else: ?>
+                        <?php if (!empty($unpaidContract)): ?>
+                            <p class="privacy-note"><a href="<?= e(url('/empresa/contratos/' . $unpaidContract['uuid'] . '/checkout')) ?>">Pagar o pedido <?= e($unpaidContract['code']) ?></a> ou monte outro, com mais adicionais.</p>
+                        <?php endif; ?>
+                        <?php if ($unavailable): ?>
+                            <div class="alert alert-warn mb-0">Agenda fechada até <?= e(fmt_date($listing['unavailable_until'])) ?>. Você ainda pode comprar para depois dessa data.</div>
+                        <?php endif; ?>
+                        <button class="btn btn-buy btn-block" type="submit" data-buy-label>Comprar agora <?= e(money($firstPackage['price_cents'])) ?></button>
+                        <p class="privacy-note">Você vai direto ao checkout transparente do Mercado Pago. O criador só grava depois do pagamento.</p>
+                    <?php endif; ?>
                 </div>
-
-                <?php if ($preview): ?>
-                    <p class="privacy-note">Na pré-visualização a compra fica desativada.</p>
-                <?php elseif (!$authUser): ?>
-                    <a class="btn btn-buy btn-block" href="<?= e(url('/login?next=' . rawurlencode('/anuncios/' . $listing['slug'] . '#contratar'))) ?>">Comprar agora</a>
-                    <p class="privacy-note">Entre com a conta da empresa. O pagamento é no Mercado Pago, nesta página.</p>
-                <?php elseif (!$isCompany): ?>
-                    <p class="privacy-note">Só contas de empresa compram horas. Você está conectado como <?= $authUser->isCreator() ? 'criador' : 'administrador' ?>.</p>
-                <?php else: ?>
-                    <?php if (!empty($unpaidContract)): ?>
-                        <p class="privacy-note"><a href="<?= e(url('/empresa/contratos/' . $unpaidContract['uuid'] . '#checkout-transparente')) ?>">Pagar o pedido <?= e($unpaidContract['code']) ?></a> ou monte outro abaixo, com mais adicionais.</p>
-                    <?php endif; ?>
-                    <?php if ($unavailable): ?>
-                        <div class="alert alert-warn mb-0">Agenda fechada até <?= e(fmt_date($listing['unavailable_until'])) ?>. Você ainda pode comprar para depois dessa data.</div>
-                    <?php endif; ?>
+                <?php if ($isCompany && !$preview): ?>
                     <details class="reveal buy-brief">
                         <summary>Tema e briefing (opcional agora)</summary>
                         <div class="reveal-body">
@@ -226,8 +231,6 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                             </div>
                         </div>
                     </details>
-                    <button class="btn btn-buy btn-block" type="submit">Comprar agora</button>
-                    <p class="privacy-note">Você vai direto ao checkout transparente do Mercado Pago. O criador só grava depois do pagamento.</p>
                 <?php endif; ?>
             <?php endif; ?>
         </form>

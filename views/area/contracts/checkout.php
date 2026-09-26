@@ -1,5 +1,5 @@
 <div class="card card-pad stack-sm" id="checkout-transparente">
-    <h2 class="panel-title mb-0">Checkout Mercado Pago</h2>
+    <h2 class="panel-title mb-0">Pague com Mercado Pago</h2>
     <p class="muted small mb-0">Cartão ou Pix. Os dados do cartão não passam pelo nosso servidor.</p>
     <div id="mp-pix" class="mp-pix" hidden></div>
     <div
