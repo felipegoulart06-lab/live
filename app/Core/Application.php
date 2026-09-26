@@ -31,7 +31,11 @@ final class Application
         Schema::install();
         Schema::patch();
         self::ensureDemoData();
-        \App\Services\OperatorAccounts::ensure();
+        try {
+            \App\Services\OperatorAccounts::ensure();
+        } catch (\Throwable $e) {
+            Logger::error('Falha ao garantir contas operadoras', ['line' => $e->getLine()]);
+        }
 
         self::$instance = new self(new Router(), $config);
         Session::start($config->get('session') ?? []);

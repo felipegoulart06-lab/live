@@ -59,11 +59,12 @@ if (is_file($vendor)) {
 
 Env::load(BASE_PATH . '/.env');
 
-try {
-    $app = Application::boot();
-    $app->run();
-} catch (Throwable $e) {
-    http_response_code(500);
+        try {
+            $app = Application::boot();
+            $app->run();
+        } catch (Throwable $e) {
+            error_log($e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
+            http_response_code(500);
     if (filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
         header('Content-Type: text/plain; charset=UTF-8');
         echo $e->getMessage() . PHP_EOL . $e->getFile() . ':' . $e->getLine();

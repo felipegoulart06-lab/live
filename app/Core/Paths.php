@@ -16,8 +16,8 @@ final class Paths
         if (self::serverless()) {
             $root = rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR . 'nexo';
             foreach ([$root, $root . '/cache', $root . '/sessions', $root . '/logs'] as $dir) {
-                if (!is_dir($dir)) {
-                    mkdir($dir, 0755, true);
+                if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+                    return sys_get_temp_dir();
                 }
             }
 
