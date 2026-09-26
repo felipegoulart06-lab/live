@@ -221,7 +221,7 @@ main.site-main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem
 .compare { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .compare th, .compare td { border-bottom: 1px solid var(--line); padding: 0.6rem 0.5rem; text-align: left; vertical-align: top; }
 .compare thead th { font-family: var(--serif); font-weight: 620; }
-.buy-box { position: sticky; top: 88px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem; display: grid; gap: 0.9rem; }
+.buy-box { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem; display: grid; gap: 0.9rem; }
 .pkg-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 0.35rem; }
 .pkg-option { position: relative; }
 .pkg-option input { position: absolute; opacity: 0; }
@@ -234,6 +234,9 @@ main.site-main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem
 .extra input { accent-color: var(--accent); margin-top: 0.2rem; }
 .extra small { display: block; color: var(--muted); }
 .privacy-note { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.mp-pix { display: grid; gap: 0.7rem; justify-items: start; }
+.mp-pix img { width: 220px; height: 220px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+.mp-pix textarea { font-size: 0.82rem; }
 .seller-hero { display: flex; gap: 0.9rem; align-items: center; margin-bottom: 0.8rem; }
 .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem 1rem; margin: 1rem 0 0; }
 .facts dt { color: var(--muted); font-size: 0.78rem; }

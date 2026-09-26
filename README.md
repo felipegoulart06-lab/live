@@ -51,6 +51,24 @@ Variáveis de ambiente:
 - `DATABASE_URL`: connection string do Supabase (Project Settings > Database, pooler na porta 6543)
 - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`: para guardar uploads no Supabase Storage
 - `SESSION_SECURE`: `true`
+- `MP_PUBLIC_KEY`: chave pública de teste (Checkout Transparente via Orders / Payment Brick)
+- `MP_ACCESS_TOKEN`: access token de teste **só no servidor** (APP_USR-…)
+- `MP_WEBHOOK_SECRET`: secret gerado em Webhooks da aplicação (tópico **order**)
+- `MP_STATEMENT_DESCRIPTOR`: nome na fatura (até 13 caracteres), opcional
+
+Webhook: `https://seu-dominio/webhooks/mercadopago`, tópico **Order (Mercado Pago)** (`type=order`). O valor cobrado sai do banco; o cartão vira token no navegador.
+
+### Checkout Transparente via Orders (app 50conto)
+
+O assistente do Mercado Pago só chega a 100% depois destes cliques na conta **50conto** (id `969746422431207`). O código já usa `POST /v1/orders`.
+
+1. **Configurar ambiente de desenvolvimento** — em Credenciais, aba **Teste**, clique em **Ativar credenciais**. Copie Public Key e Access Token (`APP_USR-…`). Na Vercel (Settings → Environment Variables, Production + Preview) grave `MP_PUBLIC_KEY`, `MP_ACCESS_TOKEN` e, depois do passo 3, `MP_WEBHOOK_SECRET`. Redeploy.
+2. **Realizar integração** — já está no site: Brick no contrato da empresa, cobrança no servidor, webhook HMAC. Marque o passo no painel do MP.
+3. **Webhooks** (menu esquerdo, não o assistente) — **Configurar notificações**. Aba testes **e** produção, URL `https://live-zeta-mocha.vercel.app/webhooks/mercadopago`, evento **Order (Mercado Pago)**. Salvar gera o secret. Teste a URL (GET deve responder `{"ok":true,"topic":"order",...}`).
+4. **Testar a integração** — entre como `empresa@cinquentaconto.com.br`, abra um contrato **Aguardando pagamento** e pague. Cartão de teste aprovado: `5031 4332 1540 6351`, CVV `123`, validade futura, nome `APRO`. Pix de teste gera QR e confirma pelo webhook. Recusados usam nome `OTHE` / `CONT`.
+5. **Entrar em produção** — só depois do teste. Troque as três variáveis pelas credenciais **produtivas** (`APP_USR-…` de produção) e mantenha o mesmo webhook. Não misture chave de teste com token de produção.
+
+Nunca commite `.env`. O 100% do assistente é marcado na conta do Mercado Pago, não no GitHub.
 
 No Supabase Storage, crie os buckets `public-media` (público: fotos de anúncios, avatares e categorias) e `private-files` (privado: anexos de contratos).
 

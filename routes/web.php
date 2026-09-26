@@ -11,6 +11,7 @@ use App\Controllers\ListingController;
 use App\Controllers\PageController;
 use App\Core\Request;
 use App\Core\Response;
+use App\Controllers\WebhookController;
 
 /** @var \App\Core\Router $router */
 
@@ -30,6 +31,8 @@ $router->post('/anuncios/{slug}/mensagem', [InteractionController::class, 'messa
 $router->post('/favoritos', [InteractionController::class, 'favorite'], ['auth']);
 $router->post('/denunciar', [InteractionController::class, 'report'], ['auth']);
 $router->get('/arquivos/{uuid}', [FileController::class, 'download'], ['auth']);
+$router->get('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
+$router->post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 
 $router->group('', ['guest'], static function ($router): void {
     $router->get('/login', [AuthController::class, 'loginForm']);

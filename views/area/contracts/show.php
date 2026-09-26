@@ -16,7 +16,9 @@ $base = $area . '/contratos/' . $c['uuid'];
     <div class="alert alert-warn">
         <?= $isCreator
             ? 'Aguardando o pagamento da empresa. Não comece a gravar antes da confirmação: ela aparece aqui e nas suas notificações.'
-            : 'Contrato criado. O pagamento é conferido pela equipe da plataforma; assim que ele for confirmado, o criador recebe o aviso para começar.' ?>
+            : (!empty($mpEnabled)
+                ? 'Contrato criado. Pague com cartão ou Pix no checkout abaixo. O criador só é avisado para gravar depois da confirmação.'
+                : 'Contrato criado. O pagamento é conferido pela equipe da plataforma; assim que ele for confirmado, o criador recebe o aviso para começar.') ?>
     </div>
 <?php elseif ($c['status'] === 'confirmed' && $isCreator): ?>
     <div class="alert alert-info">Pagamento confirmado. Combine a data de gravação e marque o contrato como em andamento quando começar.</div>
@@ -48,6 +50,15 @@ $base = $area . '/contratos/' . $c['uuid'];
                 </dl>
             <?php endif; ?>
         </section>
+
+        <?php if (!$isCreator && $c['status'] === 'awaiting_payment' && !empty($mpEnabled)): ?>
+            <?= view('area/contracts/checkout', [
+                'c' => $c,
+                'mpPublicKey' => $mpPublicKey,
+                'payerEmail' => $payerEmail,
+                'payerDocument' => $payerDocument ?? '',
+            ]) ?>
+        <?php endif; ?>
 
         <?php if ($isCreator && in_array($c['status'], ['awaiting_payment', 'confirmed', 'in_progress'], true)): ?>
             <section class="card card-pad stack-sm">

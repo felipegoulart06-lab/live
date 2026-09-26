@@ -75,6 +75,8 @@ $router->group('empresa', ['auth', 'role:company'], static function ($router): v
 
     $router->get('/contratos', [ContractController::class, 'index']);
     $router->get('/contratos/{id}', [ContractController::class, 'show']);
+    $router->get('/contratos/{id}/pagamento', [ContractController::class, 'paymentStatus']);
+    $router->post('/contratos/{id}/pagar', [ContractController::class, 'pay']);
     $router->post('/contratos/{id}/cancelar', [ContractController::class, 'cancel']);
     $router->post('/contratos/{id}/avaliar', [ContractController::class, 'review']);
     $router->post('/contratos/{id}/arquivos', [ContractController::class, 'attach']);

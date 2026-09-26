@@ -40,6 +40,9 @@ final class SystemController extends AdminController
             'values' => $values,
             'canEdit' => $this->user()->isMaster(),
             'storageReady' => \App\Core\Storage::available(),
+            'mpReady' => \App\Services\MercadoPago::configured(),
+            'mpSetup' => \App\Services\MercadoPagoClient::setup(),
+            'mpWebhook' => \App\Services\MercadoPagoClient::notificationUrl() ?: (rtrim((string) config('app.url', ''), '/') . '/webhooks/mercadopago'),
             'database' => \App\Core\Database::isPostgres() ? 'PostgreSQL (Supabase)' : 'SQLite local',
         ]);
     }

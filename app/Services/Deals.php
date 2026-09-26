@@ -187,16 +187,19 @@ final class Deals
         Audit::activity($companyId, 'request_cancelled', 'Cancelou a solicitação ' . $request['code'], 'request', (int) $request['id']);
     }
 
-    /** Called by the admin today and by a payment gateway webhook later. */
+    /** Called by the admin today and by a payment gateway webhook later. Idempotent. */
     public static function confirmPayment(array $contract, ?int $adminId, string $method, ?string $reference, ?string $gateway = null): void
     {
+        if (in_array($contract['status'], ['confirmed', 'in_progress', 'completed'], true)) {
+            return;
+        }
         if ($contract['status'] !== 'awaiting_payment') {
             throw new HttpException(422, 'Este contrato não está aguardando pagamento.');
         }
         Db::transaction(static function () use ($contract, $adminId, $method, $reference, $gateway): void {
             $now = now();
             Db::run(
-                "UPDATE payments SET status = 'paid', method = :m, gateway = :g, gateway_reference = :r, paid_at = :now, updated_at = :now2 WHERE contract_id = :c AND status = 'pending'",
+                "UPDATE payments SET status = 'paid', method = :m, gateway = COALESCE(:g, gateway), gateway_reference = COALESCE(:r, gateway_reference), paid_at = :now, updated_at = :now2 WHERE contract_id = :c AND status = 'pending'",
                 ['m' => $method, 'g' => $gateway, 'r' => $reference, 'now' => $now, 'now2' => $now, 'c' => (int) $contract['id']]
             );
             Db::update('contracts', ['status' => 'confirmed', 'paid_at' => $now, 'confirmed_at' => $now, 'updated_at' => $now], ['id' => (int) $contract['id']]);

@@ -11,6 +11,7 @@
     { "src": "/favicon.ico", "dest": "/public/favicon.ico" },
     { "src": "/apple-touch-icon.png", "dest": "/public/apple-touch-icon.png" },
     { "src": "/apple-touch-icon-precomposed.png", "dest": "/public/apple-touch-icon.png" },
+    { "src": "/webhooks/(.*)", "dest": "/api/index.php?__path=webhooks/$1" },
     { "src": "/admin/(.*)", "dest": "/api/index.php?__path=admin/$1" },
     { "src": "/painel/(.*)", "dest": "/api/index.php?__path=painel/$1" },
     { "src": "/empresa/(.*)", "dest": "/api/index.php?__path=empresa/$1" },

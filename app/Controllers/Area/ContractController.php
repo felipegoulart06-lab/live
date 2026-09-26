@@ -12,6 +12,7 @@ use App\Core\Response;
 use App\Core\Storage;
 use App\Queries\ContractQueries;
 use App\Services\Deals;
+use App\Services\MercadoPago;
 
 final class ContractController extends AreaController
 {
@@ -51,8 +52,17 @@ final class ContractController extends AreaController
     public function show(Request $request): Response
     {
         $row = Gate::ownContract((string) $request->param('id'));
+        $company = $this->user()->isCompany()
+            ? \App\Core\Db::first('SELECT document FROM companies WHERE user_id = :u', ['u' => $this->user()->id])
+            : null;
 
-        return $this->render('area/contracts/show', ContractQueries::detail($row) + ['title' => 'Contrato ' . $row['code']]);
+        return $this->render('area/contracts/show', ContractQueries::detail($row) + [
+            'title' => 'Contrato ' . $row['code'],
+            'mpEnabled' => MercadoPago::configured() && $this->user()->isCompany(),
+            'mpPublicKey' => MercadoPago::publicKey(),
+            'payerEmail' => $this->user()->email,
+            'payerDocument' => MercadoPago::sanitizeDocument((string) ($company['document'] ?? '')),
+        ]);
     }
 
     public function start(Request $request): Response
@@ -102,6 +112,81 @@ final class ContractController extends AreaController
         $this->success('Contrato cancelado.');
 
         return $this->redirect($back);
+    }
+
+    public function pay(Request $request): Response
+    {
+        $user = $this->user();
+        if (!$user->isCompany()) {
+            throw HttpException::forbidden();
+        }
+        $this->throttle('pay:' . $user->id, 10, 300);
+        $row = Gate::ownContract((string) $request->param('id'));
+        $payment = Db::first('SELECT * FROM payments WHERE contract_id = :c ORDER BY id DESC LIMIT 1', ['c' => (int) $row['id']]);
+        if (!$payment) {
+            throw HttpException::notFound('Pagamento não encontrado.');
+        }
+        if (!MercadoPago::configured()) {
+            throw new HttpException(503, 'Pagamento online ainda não está disponível.');
+        }
+
+        $input = $request->all();
+        $doc = MercadoPago::sanitizeDocument((string) (($input['payer']['identification']['number'] ?? '') ?: ''));
+        if ($doc === '') {
+            $company = Db::first('SELECT document FROM companies WHERE user_id = :u', ['u' => $user->id]);
+            $doc = MercadoPago::sanitizeDocument((string) ($company['document'] ?? ''));
+            if ($doc !== '') {
+                $input['payer']['identification'] = [
+                    'type' => strlen($doc) === 14 ? 'CNPJ' : 'CPF',
+                    'number' => $doc,
+                ];
+            }
+        }
+
+        try {
+            $result = MercadoPago::charge($row, $payment, $input, $user->email, $request->ip());
+        } catch (HttpException $e) {
+            return Response::json(['ok' => false, 'message' => $e->getMessage()], $e->status >= 400 ? $e->status : 422);
+        } catch (\Throwable) {
+            return Response::json(['ok' => false, 'message' => 'Não foi possível concluir o pagamento. Tente de novo.'], 502);
+        }
+
+        if (($result['status'] ?? '') === 'approved') {
+            return Response::json([
+                'ok' => true,
+                'status' => 'approved',
+                'redirect' => url('/empresa/contratos/' . $row['uuid']),
+                'message' => 'Pagamento aprovado.',
+            ]);
+        }
+
+        return Response::json([
+            'ok' => ($result['status'] ?? '') === 'pending',
+            'status' => $result['status'] ?? 'pending',
+            'message' => $result['message'] ?? null,
+            'pix' => $result['pix'] ?? null,
+        ], ($result['status'] ?? '') === 'rejected' ? 422 : 200);
+    }
+
+    public function paymentStatus(Request $request): Response
+    {
+        $user = $this->user();
+        if (!$user->isCompany()) {
+            throw HttpException::forbidden();
+        }
+        $row = Gate::ownContract((string) $request->param('id'));
+        $payment = Db::first('SELECT status, gateway_status, gateway_payload FROM payments WHERE contract_id = :c ORDER BY id DESC LIMIT 1', ['c' => (int) $row['id']]);
+        $payload = json_decode((string) ($payment['gateway_payload'] ?? ''), true);
+
+        return Response::json([
+            'contract' => $row['status'],
+            'payment' => $payment['status'] ?? null,
+            'gateway' => $payment['gateway_status'] ?? null,
+            'pix' => is_array($payload) && !empty($payload['qr_code']) ? [
+                'qr_code' => $payload['qr_code'],
+                'qr_code_base64' => $payload['qr_code_base64'] ?? '',
+            ] : null,
+        ]);
     }
 
     public function review(Request $request): Response

@@ -29,6 +29,7 @@ final class Application
         $config = Config::load();
         Database::connect($config->get('database') ?? []);
         Schema::install();
+        Schema::patch();
         self::ensureDemoData();
         \App\Services\OperatorAccounts::ensure();
 

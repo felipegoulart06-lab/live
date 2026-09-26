@@ -30,8 +30,16 @@ $numbers = ['platform_fee_percent', 'request_expiry_hours', 'min_package_hours',
         <dl class="kv">
             <dt>Banco de dados</dt><dd><?= e($database) ?></dd>
             <dt>Arquivos</dt><dd><?= $storageReady ? 'Supabase Storage' : 'Disco local' ?></dd>
-            <dt>Pagamentos</dt><dd>Registro manual pela equipe (pronto para gateway)</dd>
+            <dt>Pagamentos</dt><dd><?= !empty($mpReady) && !empty($mpSetup['webhook_secret']) && !empty($mpSetup['https_url']) ? 'Checkout transparente Mercado Pago (Orders)' : 'Falta configurar o Mercado Pago' ?></dd>
         </dl>
         <?php if (!$storageReady): ?><p class="muted small" style="margin:.8rem 0 0">Em produção, defina SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para guardar uploads fora do servidor.</p><?php endif; ?>
+        <h3 class="panel-title" style="margin-top:1.2rem">Mercado Pago (app 50conto)</h3>
+        <ol class="muted small" style="margin:.4rem 0 0;padding-left:1.2rem">
+            <li><?= !empty($mpSetup['public_key']) ? 'Chave pública de teste no ambiente.' : 'Ative as credenciais de teste e cole MP_PUBLIC_KEY na Vercel.' ?></li>
+            <li><?= !empty($mpSetup['access_token']) ? 'Access token de teste no servidor.' : 'Cole MP_ACCESS_TOKEN (APP_USR-…) só na Vercel, nunca no git.' ?></li>
+            <li><?= !empty($mpSetup['https_url']) ? 'APP_URL em HTTPS.' : 'Defina APP_URL=https://live-zeta-mocha.vercel.app (ou o domínio final).' ?></li>
+            <li><?= !empty($mpSetup['webhook_secret']) ? 'Secret do webhook cadastrado.' : 'Em Webhooks, tópico Order, URL abaixo; cole o secret em MP_WEBHOOK_SECRET.' ?></li>
+        </ol>
+        <p class="muted small" style="margin:.6rem 0 0">Webhook: <code><?= e($mpWebhook) ?></code></p>
     </section>
 </div>
