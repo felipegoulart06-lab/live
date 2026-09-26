@@ -50,6 +50,12 @@ final class MercadoPagoClient
     {
         $base = rtrim((string) config('app.url', ''), '/');
         if (!str_starts_with($base, 'https://')) {
+            $host = (string) ($_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? '');
+            if ($host !== '' && preg_match('/^[a-z0-9.\-]+(:\d+)?$/i', $host)) {
+                $base = 'https://' . $host;
+            }
+        }
+        if (!str_starts_with($base, 'https://')) {
             return '';
         }
 
