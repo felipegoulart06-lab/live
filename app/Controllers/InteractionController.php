@@ -35,6 +35,9 @@ final class InteractionController extends Controller
             'desired_date' => (string) $request->input('desired_date', ''),
             'desired_time' => (string) $request->input('desired_time', ''),
         ];
+        if (mb_strlen($data['theme']) < 8) {
+            $data['theme'] = trim((string) $listing['title']);
+        }
         $back = '/anuncios/' . $listing['slug'] . '#contratar';
         if ($response = $this->invalid($data, [
             'package_id' => 'required|integer',
@@ -48,10 +51,10 @@ final class InteractionController extends Controller
         }
 
         $addonIds = array_values(array_filter(array_map('intval', (array) $request->input('addons', [])), static fn (int $id): bool => $id > 0));
-        $created = Deals::createRequest($user->id, $listing, (int) $data['package_id'], $addonIds, $data);
-        $this->success('Solicitação ' . $created['code'] . ' enviada. O criador tem até ' . setting('request_expiry_hours') . ' horas para responder.');
+        $contractUuid = Deals::checkoutNow($user->id, $listing, (int) $data['package_id'], $addonIds, $data);
+        $this->success('Pedido criado. Pague com cartão ou Pix para confirmar.');
 
-        return $this->redirect('/empresa/solicitacoes/' . $created['uuid']);
+        return $this->redirect('/empresa/contratos/' . $contractUuid . '#checkout-transparente');
     }
 
     public function message(Request $request): Response

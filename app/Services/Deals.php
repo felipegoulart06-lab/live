@@ -108,11 +108,31 @@ final class Deals
         });
     }
 
-    public static function acceptRequest(array $request, int $creatorId): string
+    /** Company buys now: contract is created and they go straight to Mercado Pago. */
+    public static function checkoutNow(int $companyId, array $listing, int $packageId, array $addonIds, array $data): string
+    {
+        $pending = Db::first(
+            "SELECT * FROM requests WHERE company_id = :c AND listing_id = :l AND status = 'pending'",
+            ['c' => $companyId, 'l' => (int) $listing['id']]
+        );
+        if ($pending) {
+            self::cancelRequest($pending, $companyId);
+        }
+
+        $created = self::createRequest($companyId, $listing, $packageId, $addonIds, $data);
+        $request = Db::first('SELECT * FROM requests WHERE uuid = :u', ['u' => $created['uuid']]);
+        if (!$request) {
+            throw new HttpException(422, 'Não foi possível abrir o pagamento. Tente de novo.');
+        }
+
+        return self::acceptRequest($request, (int) $listing['creator_id'], false);
+    }
+
+    public static function acceptRequest(array $request, int $creatorId, bool $notifyCompany = true): string
     {
         self::assertPending($request);
 
-        return Db::transaction(static function () use ($request, $creatorId): string {
+        return Db::transaction(static function () use ($request, $creatorId, $notifyCompany): string {
             $now = now();
             $feePercent = max(0, min(50, Settings::int('platform_fee_percent')));
             $fee = (int) round((int) $request['total_cents'] * $feePercent / 100);
@@ -164,7 +184,11 @@ final class Deals
                 'updated_at' => $now,
             ]);
             self::event($contractId, $creatorId, 'created', null);
-            Notifier::send((int) $request['company_id'], 'request_accepted', 'Solicitação aceita: ' . $request['code'], 'O contrato ' . $code . ' foi criado e aguarda pagamento.', '/empresa/contratos/' . $uuid);
+            if ($notifyCompany) {
+                Notifier::send((int) $request['company_id'], 'request_accepted', 'Solicitação aceita: ' . $request['code'], 'O contrato ' . $code . ' foi criado e aguarda pagamento.', '/empresa/contratos/' . $uuid);
+            } else {
+                Notifier::send((int) $request['creator_id'], 'request_new', 'Nova compra: ' . $code, 'A empresa escolheu o pacote. Você grava depois que o pagamento for confirmado.', '/painel/contratos/' . $uuid);
+            }
             Audit::activity($creatorId, 'request_accepted', 'Aceitou a solicitação ' . $request['code'], 'request', (int) $request['id']);
 
             return $uuid;

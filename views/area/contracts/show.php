@@ -16,8 +16,8 @@ $base = $area . '/contratos/' . $c['uuid'];
     <div class="alert alert-warn">
         <?= $isCreator
             ? 'Aguardando o pagamento da empresa. Não comece a gravar antes da confirmação: ela aparece aqui e nas suas notificações.'
-            : (!empty($mpEnabled)
-                ? 'Contrato criado. Pague com cartão ou Pix no checkout abaixo. O criador só é avisado para gravar depois da confirmação.'
+                : (!empty($mpEnabled)
+                ? 'Pague abaixo com o checkout transparente do Mercado Pago. O criador só grava depois da confirmação.'
                 : 'Contrato criado, mas o checkout do Mercado Pago ainda não está ativo neste ambiente (faltam MP_PUBLIC_KEY e MP_ACCESS_TOKEN). Sem isso o brick não aparece.') ?>
     </div>
 <?php elseif ($c['status'] === 'confirmed' && $isCreator): ?>
@@ -30,6 +30,14 @@ $base = $area . '/contratos/' . $c['uuid'];
     </div>
 
     <div class="stack">
+        <?php if (!$isCreator && $c['status'] === 'awaiting_payment' && !empty($mpEnabled)): ?>
+            <?= view('area/contracts/checkout', [
+                'c' => $c,
+                'mpPublicKey' => $mpPublicKey,
+                'payerEmail' => $payerEmail,
+                'payerDocument' => $payerDocument ?? '',
+            ]) ?>
+        <?php endif; ?>
         <section class="card card-pad">
             <h2 class="panel-title">Valores</h2>
             <div class="money-lines">
@@ -50,15 +58,6 @@ $base = $area . '/contratos/' . $c['uuid'];
                 </dl>
             <?php endif; ?>
         </section>
-
-        <?php if (!$isCreator && $c['status'] === 'awaiting_payment' && !empty($mpEnabled)): ?>
-            <?= view('area/contracts/checkout', [
-                'c' => $c,
-                'mpPublicKey' => $mpPublicKey,
-                'payerEmail' => $payerEmail,
-                'payerDocument' => $payerDocument ?? '',
-            ]) ?>
-        <?php endif; ?>
 
         <?php if ($isCreator && in_array($c['status'], ['awaiting_payment', 'confirmed', 'in_progress'], true)): ?>
             <section class="card card-pad stack-sm">

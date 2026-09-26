@@ -29,6 +29,11 @@ final class AuthController extends Controller
 
     public function loginForm(Request $request): Response
     {
+        $next = (string) $request->query('next', '');
+        if ($next !== '' && str_starts_with($next, '/') && !str_starts_with($next, '//')) {
+            Session::set('intended', $next);
+        }
+
         return $this->view('auth/login', ['title' => 'Entrar'], 'layouts/auth');
     }
 

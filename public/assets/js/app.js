@@ -102,6 +102,12 @@
             });
             if (totalEl) totalEl.textContent = formatBRL(price);
             if (daysEl) daysEl.textContent = pkg.getAttribute('data-hours') + 'h de vídeo · ' + days + ' dias';
+            box.querySelectorAll('.upsell-row').forEach(function (row) {
+                var on = row.querySelector('[data-extra]');
+                row.classList.toggle('is-on', !!(on && on.checked));
+                var label = row.querySelector('[data-add-label]');
+                if (label) label.textContent = on && on.checked ? 'Adicionado' : 'Adicionar';
+            });
         };
         box.addEventListener('change', refresh);
         refresh();

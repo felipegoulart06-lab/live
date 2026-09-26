@@ -82,6 +82,10 @@ final class ListingController extends Controller
             "SELECT uuid, code FROM requests WHERE company_id = :u AND listing_id = :l AND status = 'pending'",
             ['u' => $user->id, 'l' => (int) $listing['id']]
         ) : null;
+        $unpaidContract = $user && $user->isCompany() ? Db::first(
+            "SELECT uuid, code FROM contracts WHERE company_id = :u AND listing_id = :l AND status = 'awaiting_payment' ORDER BY id DESC LIMIT 1",
+            ['u' => $user->id, 'l' => (int) $listing['id']]
+        ) : null;
 
         return $details + [
             'title' => $listing['title'] . ' · ' . brand_name(),
@@ -94,6 +98,7 @@ final class ListingController extends Controller
             'embed' => Listings::embedUrl($listing['video_url'] ?? null),
             'favorited' => $favorited,
             'pendingRequest' => $pendingRequest,
+            'unpaidContract' => $unpaidContract,
             'preview' => $preview,
         ];
     }

@@ -221,7 +221,7 @@ main.site-main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem
 .compare { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .compare th, .compare td { border-bottom: 1px solid var(--line); padding: 0.6rem 0.5rem; text-align: left; vertical-align: top; }
 .compare thead th { font-family: var(--serif); font-weight: 620; }
-.buy-box { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem; display: grid; gap: 0.9rem; }
+.buy-box { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem; display: grid; gap: 0.85rem; }
 .pkg-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 0.35rem; }
 .pkg-option { position: relative; }
 .pkg-option input { position: absolute; opacity: 0; }
@@ -229,10 +229,20 @@ main.site-main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem
 .pkg-option input:checked + span { background: var(--ink); color: #fff; border-color: var(--ink); }
 .pkg-option input:focus-visible + span { box-shadow: var(--focus); }
 .buy-price strong { font-family: var(--serif); font-size: 1.9rem; display: block; line-height: 1.1; }
-.extras { display: grid; gap: 0.45rem; }
-.extra { display: grid; grid-template-columns: auto 1fr; gap: 0.55rem; align-items: start; font-size: 0.9rem; }
-.extra input { accent-color: var(--accent); margin-top: 0.2rem; }
-.extra small { display: block; color: var(--muted); }
+.upsell { display: grid; gap: 0.45rem; margin: 0; padding: 0; border: 0; }
+.upsell legend { font-weight: 700; font-size: 1rem; margin-bottom: 0.15rem; }
+.upsell-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.55rem; align-items: center; padding: 0.7rem 0.75rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--white); cursor: pointer; }
+.upsell-row input { position: absolute; opacity: 0; width: 0; height: 0; }
+.upsell-copy { min-width: 0; }
+.upsell-copy strong { display: block; font-size: 0.92rem; }
+.upsell-copy small { display: block; color: var(--muted); }
+.upsell-price { font-weight: 700; white-space: nowrap; }
+.upsell-add { display: inline-flex; align-items: center; justify-content: center; padding: 0.35rem 0.7rem; border-radius: 999px; background: #1aa36b; color: #fff; font-size: 0.78rem; font-weight: 700; }
+.upsell-row.is-on { border-color: #1aa36b; background: #f3fbf7; }
+.upsell-row.is-on .upsell-add { background: var(--ink); }
+.btn-buy { background: #1aa36b; color: #fff; font-weight: 700; padding: 0.9rem 1rem; }
+.btn-buy:hover { background: #158a5a; color: #fff; }
+.buy-brief { margin: 0; }
 .privacy-note { font-size: 0.82rem; color: var(--muted); margin: 0; }
 .mp-pix { display: grid; gap: 0.7rem; justify-items: start; }
 .mp-pix img { width: 220px; height: 220px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }

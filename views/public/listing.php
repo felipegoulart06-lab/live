@@ -167,60 +167,67 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                     </div>
                     <?php if ($m = error_field('package_id')): ?><p class="field-err"><?= e($m) ?></p><?php endif; ?>
                 </fieldset>
-                <div class="buy-price">
-                    <span class="muted small">Total</span>
-                    <strong data-total><?= e(money($firstPackage['price_cents'])) ?></strong>
-                    <span class="muted small" data-days-label><?= (int) $firstPackage['hours'] ?>h de vídeo · <?= (int) $firstPackage['delivery_days'] ?> dias</span>
-                </div>
                 <?php if ($addons !== []): ?>
-                    <fieldset class="extras">
-                        <legend>Adicionais</legend>
+                    <fieldset class="upsell">
+                        <legend>Adicione à sua compra</legend>
+                        <p class="muted small mb-0">Quanto mais adicionais, mais completo fica o vídeo.</p>
                         <?php foreach ($addons as $addon): ?>
-                            <label class="extra">
+                            <label class="upsell-row<?= in_array((string) $addon['id'], $oldAddons, true) ? ' is-on' : '' ?>">
                                 <input type="checkbox" name="addons[]" value="<?= (int) $addon['id'] ?>" data-extra data-price="<?= (int) $addon['price_cents'] ?>" data-days="<?= (int) $addon['extra_days'] ?>" <?= in_array((string) $addon['id'], $oldAddons, true) ? 'checked' : '' ?>>
-                                <span><?= e($addon['name']) ?> · <strong><?= e(money($addon['price_cents'])) ?></strong>
-                                    <small><?= e($addon['description'] ?? '') ?><?= (int) $addon['extra_days'] > 0 ? ' · +' . (int) $addon['extra_days'] . ' dias' : '' ?></small></span>
+                                <span class="upsell-copy">
+                                    <strong><?= e($addon['name']) ?></strong>
+                                    <small><?= e($addon['description'] ?: 'Serviço adicional') ?><?= (int) $addon['extra_days'] > 0 ? ' · +' . (int) $addon['extra_days'] . ' dias' : '' ?></small>
+                                </span>
+                                <span class="upsell-price"><?= e(money($addon['price_cents'])) ?></span>
+                                <span class="upsell-add" data-add-label>Adicionar</span>
                             </label>
                         <?php endforeach; ?>
                     </fieldset>
                 <?php endif; ?>
+                <div class="buy-summary">
+                    <div class="buy-price">
+                        <span class="muted small">Total</span>
+                        <strong data-total><?= e(money($firstPackage['price_cents'])) ?></strong>
+                        <span class="muted small" data-days-label><?= (int) $firstPackage['hours'] ?>h de vídeo · <?= (int) $firstPackage['delivery_days'] ?> dias</span>
+                    </div>
+                </div>
 
                 <?php if ($preview): ?>
-                    <p class="privacy-note">Na pré-visualização a contratação fica desativada.</p>
+                    <p class="privacy-note">Na pré-visualização a compra fica desativada.</p>
                 <?php elseif (!$authUser): ?>
-                    <a class="btn btn-accent btn-block" href="<?= e(url('/login')) ?>">Entrar para contratar</a>
-                    <p class="privacy-note">Ainda não tem conta? <a href="<?= e(url('/cadastro?tipo=empresa')) ?>">Cadastre sua empresa</a>.</p>
+                    <a class="btn btn-buy btn-block" href="<?= e(url('/login?next=' . rawurlencode('/anuncios/' . $listing['slug'] . '#contratar'))) ?>">Comprar agora</a>
+                    <p class="privacy-note">Entre com a conta da empresa. O pagamento é no Mercado Pago, nesta página.</p>
                 <?php elseif (!$isCompany): ?>
-                    <p class="privacy-note">Só contas de empresa contratam horas. Você está conectado como <?= $authUser->isCreator() ? 'criador' : 'administrador' ?>.</p>
-                <?php elseif ($pendingRequest): ?>
-                    <div class="alert alert-info mb-0">Você já tem a solicitação <?= e($pendingRequest['code']) ?> aguardando resposta. <a href="<?= e(url('/empresa/solicitacoes/' . $pendingRequest['uuid'])) ?>">Acompanhar</a></div>
+                    <p class="privacy-note">Só contas de empresa compram horas. Você está conectado como <?= $authUser->isCreator() ? 'criador' : 'administrador' ?>.</p>
                 <?php else: ?>
-                    <?php if ($unavailable): ?>
-                        <div class="alert alert-warn mb-0">O criador está indisponível até <?= e(fmt_date($listing['unavailable_until'])) ?>. Você pode solicitar para depois dessa data.</div>
+                    <?php if (!empty($unpaidContract)): ?>
+                        <p class="privacy-note"><a href="<?= e(url('/empresa/contratos/' . $unpaidContract['uuid'] . '#checkout-transparente')) ?>">Pagar o pedido <?= e($unpaidContract['code']) ?></a> ou monte outro abaixo, com mais adicionais.</p>
                     <?php endif; ?>
-                    <label class="field<?= error_field('theme') ? ' has-error' : '' ?>"><span>Tema do vídeo</span>
-                        <input name="theme" required minlength="8" maxlength="300" value="<?= e(old('theme')) ?>" placeholder="Ex.: Boas-vindas para novos colaboradores">
-                        <?php if ($m = error_field('theme')): ?><span class="field-err"><?= e($m) ?></span><?php endif; ?>
-                    </label>
-                    <label class="field<?= error_field('briefing') ? ' has-error' : '' ?>"><span>Briefing <small>(opcional)</small></span>
-                        <textarea name="briefing" maxlength="4000" rows="4" placeholder="Objetivo, público, tom, o que não pode ser dito…"><?= e(old('briefing')) ?></textarea>
-                        <?php if ($m = error_field('briefing')): ?><span class="field-err"><?= e($m) ?></span><?php endif; ?>
-                    </label>
-                    <div class="form-grid">
-                        <label class="field<?= error_field('desired_date') ? ' has-error' : '' ?>"><span>Data desejada</span>
-                            <input type="date" name="desired_date" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" value="<?= e(old('desired_date')) ?>">
-                            <?php if ($m = error_field('desired_date')): ?><span class="field-err"><?= e($m) ?></span><?php endif; ?>
-                        </label>
-                        <label class="field<?= error_field('desired_time') ? ' has-error' : '' ?>"><span>Horário</span>
-                            <input type="time" name="desired_time" value="<?= e(old('desired_time')) ?>">
-                            <?php if ($m = error_field('desired_time')): ?><span class="field-err"><?= e($m) ?></span><?php endif; ?>
-                        </label>
-                    </div>
-                    <label class="field"><span>Mensagem para o criador <small>(opcional)</small></span>
-                        <textarea name="message" maxlength="2000" rows="3"><?= e(old('message')) ?></textarea>
-                    </label>
-                    <button class="btn btn-accent btn-block" type="submit">Enviar solicitação</button>
-                    <p class="privacy-note">O criador tem até <?= (int) setting('request_expiry_hours', 72) ?> horas para responder. Você só paga depois que ele aceitar.</p>
+                    <?php if ($unavailable): ?>
+                        <div class="alert alert-warn mb-0">Agenda fechada até <?= e(fmt_date($listing['unavailable_until'])) ?>. Você ainda pode comprar para depois dessa data.</div>
+                    <?php endif; ?>
+                    <details class="reveal buy-brief">
+                        <summary>Tema e briefing (opcional agora)</summary>
+                        <div class="reveal-body">
+                            <label class="field<?= error_field('theme') ? ' has-error' : '' ?>"><span>Tema do vídeo</span>
+                                <input name="theme" minlength="8" maxlength="300" value="<?= e(old('theme', $listing['title'])) ?>" placeholder="Ex.: Boas-vindas para novos colaboradores">
+                                <?php if ($m = error_field('theme')): ?><span class="field-err"><?= e($m) ?></span><?php endif; ?>
+                            </label>
+                            <label class="field<?= error_field('briefing') ? ' has-error' : '' ?>"><span>Briefing</span>
+                                <textarea name="briefing" maxlength="4000" rows="3" placeholder="Objetivo, público, tom…"><?= e(old('briefing')) ?></textarea>
+                            </label>
+                            <div class="form-grid">
+                                <label class="field"><span>Data desejada</span>
+                                    <input type="date" name="desired_date" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" value="<?= e(old('desired_date')) ?>">
+                                </label>
+                                <label class="field"><span>Horário</span>
+                                    <input type="time" name="desired_time" value="<?= e(old('desired_time')) ?>">
+                                </label>
+                            </div>
+                        </div>
+                    </details>
+                    <button class="btn btn-buy btn-block" type="submit">Comprar agora</button>
+                    <p class="privacy-note">Você vai direto ao checkout transparente do Mercado Pago. O criador só grava depois do pagamento.</p>
                 <?php endif; ?>
             <?php endif; ?>
         </form>
