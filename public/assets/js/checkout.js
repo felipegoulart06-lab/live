@@ -58,11 +58,18 @@
     var identification = doc.length === 14
         ? { type: 'CNPJ', number: doc }
         : (doc.length === 11 ? { type: 'CPF', number: doc } : undefined);
+    var payer = {
+        email: email,
+        entityType: doc.length === 14 ? 'association' : 'individual'
+    };
+    if (identification) {
+        payer.identification = identification;
+    }
 
     mp.bricks().create('payment', 'mp-checkout', {
         initialization: {
             amount: amount,
-            payer: identification ? { email: email, identification: identification } : { email: email }
+            payer: payer
         },
         customization: {
             visual: { style: { theme: 'default' } },

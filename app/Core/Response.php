@@ -60,8 +60,24 @@ final class Response
             'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
         ];
         if (str_starts_with($this->headers['Content-Type'] ?? '', 'text/html')) {
+            $mp = 'https://sdk.mercadopago.com https://www.mercadopago.com https://www.mercadopago.com.br https://*.mercadopago.com https://*.mercadopago.com.br https://api.mercadopago.com https://api.mercadopago.com.br https://events.mercadopago.com https://secure-fields.mercadopago.com';
+            $ml = 'https://api.mercadolibre.com https://www.mercadolibre.com https://www.mercadolibre.com.br https://*.mercadolibre.com https://*.mercadolibre.com.br';
+            $cdn = 'https://http2.mlstatic.com https://*.mlstatic.com';
             $this->headers += [
-                'Content-Security-Policy' => "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://http2.mlstatic.com https://*.mlstatic.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' https://sdk.mercadopago.com https://http2.mlstatic.com https://*.mlstatic.com https://www.mercadopago.com https://www.mercadopago.com.br; connect-src 'self' https://api.mercadopago.com https://api.mercadopago.com.br https://www.mercadopago.com https://www.mercadopago.com.br https://sdk.mercadopago.com https://http2.mlstatic.com https://*.mlstatic.com; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.mercadopago.com https://www.mercadopago.com.br https://sdk.mercadopago.com https://http2.mlstatic.com https://*.mlstatic.com; worker-src 'self' blob:; form-action 'self'; base-uri 'self'; frame-ancestors 'self'",
+                'Content-Security-Policy' => implode('; ', [
+                    "default-src 'self'",
+                    "img-src 'self' data: blob: https:",
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com {$cdn}",
+                    "font-src 'self' data: https://fonts.gstatic.com {$cdn}",
+                    "script-src 'self' 'unsafe-inline' {$mp} {$cdn}",
+                    "connect-src 'self' {$mp} {$ml} {$cdn}",
+                    "frame-src https://www.youtube-nocookie.com https://player.vimeo.com {$mp} {$ml} {$cdn}",
+                    "child-src blob: {$mp} {$cdn}",
+                    "worker-src 'self' blob:",
+                    "form-action 'self'",
+                    "base-uri 'self'",
+                    "frame-ancestors 'self'",
+                ]),
             ];
             if (Auth::check()) {
                 $this->headers += ['Cache-Control' => 'private, no-store'];

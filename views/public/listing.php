@@ -149,7 +149,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
         <?php endif; ?>
     </div>
 
-    <aside class="stack">
+    <aside class="stack product-aside">
         <form class="buy-box" id="contratar" method="post" action="<?= e(url('/anuncios/' . $listing['slug'] . '/solicitar')) ?>" data-buybox>
             <?= csrf_field() ?>
             <?php if ($packages === []): ?>
