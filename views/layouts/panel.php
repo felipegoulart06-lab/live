@@ -121,14 +121,16 @@ if ($authUser->isAdmin()) {
         </div>
         <nav class="side-nav">
             <?php foreach ($groups as $label => $items): ?>
-                <?php if ($label !== ''): ?><p class="side-label"><?= e($label) ?></p><?php endif; ?>
-                <?php foreach ($items as [$path, $name, $count]): ?>
-                    <?php $active = nav_href_active($path); ?>
-                    <a href="<?= e(url($path)) ?>" class="<?= $active ? 'is-active' : '' ?>" <?= $active ? 'aria-current="page"' : '' ?>>
-                        <span><?= e($name) ?></span>
-                        <?php if ($count > 0): ?><span class="count" aria-label="<?= (int) $count ?> pendentes"><?= $count > 99 ? '99+' : (int) $count ?></span><?php endif; ?>
-                    </a>
-                <?php endforeach; ?>
+                <div class="side-group">
+                    <?php if ($label !== ''): ?><p class="side-label"><?= e($label) ?></p><?php endif; ?>
+                    <?php foreach ($items as [$path, $name, $count]): ?>
+                        <?php $active = nav_href_active($path); ?>
+                        <a href="<?= e(url($path)) ?>" class="<?= $active ? 'is-active' : '' ?>" <?= $active ? 'aria-current="page"' : '' ?>>
+                            <span><?= e($name) ?></span>
+                            <?php if ($count > 0): ?><span class="count" aria-label="<?= (int) $count ?> pendentes"><?= $count > 99 ? '99+' : (int) $count ?></span><?php endif; ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
             <?php endforeach; ?>
         </nav>
         <div class="side-foot">
@@ -138,7 +140,7 @@ if ($authUser->isAdmin()) {
                 <?php else: ?>
                     <span class="avatar avatar-sm" aria-hidden="true"><?= e(initials($authUser->displayName)) ?></span>
                 <?php endif; ?>
-                <div>
+                <div class="side-user-copy">
                     <strong><?= e($authUser->displayName) ?></strong>
                     <small><?= e($authUser->email) ?></small>
                 </div>
@@ -160,6 +162,7 @@ if ($authUser->isAdmin()) {
                     <a class="btn btn-accent btn-sm" href="<?= e(url('/painel/anuncios/novo')) ?>">+ Criar anúncio</a>
                 <?php elseif ($authUser->isCompany()): ?>
                     <a class="btn btn-accent btn-sm" href="<?= e(url('/anuncios')) ?>">Ver anúncios</a>
+                    <?= view('cart-link', ['cartCount' => $cartCount ?? 0]) ?>
                 <?php endif; ?>
                 <a class="text-link small" href="<?= e(url('/anuncios')) ?>">Ver o site</a>
                 <a class="bell" href="<?= e(url('/notificacoes')) ?>">

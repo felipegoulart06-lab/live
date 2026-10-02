@@ -9,7 +9,7 @@ $sections = [
 <section class="hero">
     <div>
         <p class="eyebrow">Horas de vídeo para empresas</p>
-        <h1><?= e((string) setting('home_hero_title', 'Contrate horas de vídeo para a sua empresa')) ?></h1>
+        <h1><?= e((string) setting('home_hero_title', 'Encontre pessoas para gravar vídeos para sua empresa!')) ?></h1>
         <p class="lead"><?= e((string) setting('home_hero_subtitle', '')) ?></p>
         <div class="hero-actions">
             <a class="btn btn-accent" href="<?= e(url('/anuncios')) ?>">Ver anúncios</a>

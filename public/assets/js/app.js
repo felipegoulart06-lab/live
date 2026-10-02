@@ -103,7 +103,7 @@
             if (totalEl) totalEl.textContent = formatBRL(price);
             if (daysEl) daysEl.textContent = pkg.getAttribute('data-hours') + 'h de vídeo · ' + days + ' dias';
             box.querySelectorAll('[data-buy-label]').forEach(function (btn) {
-                btn.textContent = 'Comprar agora ' + formatBRL(price);
+                btn.textContent = 'Adicionar ao carrinho ' + formatBRL(price);
             });
             box.querySelectorAll('.upsell-row').forEach(function (row) {
                 var on = row.querySelector('[data-extra]');

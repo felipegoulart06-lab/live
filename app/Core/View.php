@@ -18,6 +18,7 @@ final class View
         }
 
         $data['authUser'] = $data['authUser'] ?? Auth::user();
+        $data['cartCount'] = $data['cartCount'] ?? \App\Services\Cart::count();
         $data['errors'] = $data['errors'] ?? Session::getFlash('errors', []);
         $data['old'] = $data['old'] ?? Session::getFlash('old', []);
         $data['success'] = $data['success'] ?? Session::getFlash('success');

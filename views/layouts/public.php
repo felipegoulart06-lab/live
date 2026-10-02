@@ -55,6 +55,7 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
         </form>
         <nav class="header-actions" aria-label="Principal">
             <a class="text-link hide-md" href="<?= e(url('/anuncios')) ?>">Anúncios</a>
+            <?= view('cart-link', ['cartCount' => $cartCount ?? 0]) ?>
             <?php if ($authUser): ?>
                 <a class="btn btn-ghost hide-md" href="<?= e(url($authUser->homePath())) ?>">Meu painel</a>
             <?php else: ?>
@@ -83,6 +84,7 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
     <nav class="drawer-panel" aria-label="Menu">
         <button class="icon-btn" type="button" data-close-drawer>Fechar</button>
         <a href="<?= e(url('/anuncios')) ?>">Anúncios</a>
+        <a href="<?= e(url('/carrinho')) ?>">Carrinho<?= !empty($cartCount) ? ' (' . (int) $cartCount . ')' : '' ?></a>
         <a href="<?= e(url('/como-funciona')) ?>">Como funciona</a>
         <a href="<?= e(url('/ajuda')) ?>">Ajuda</a>
         <?php if ($authUser): ?>

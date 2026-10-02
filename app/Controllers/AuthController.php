@@ -32,6 +32,8 @@ final class AuthController extends Controller
         $next = (string) $request->query('next', '');
         if ($next !== '' && str_starts_with($next, '/') && !str_starts_with($next, '//')) {
             Session::set('intended', $next);
+        } elseif (\App\Services\Cart::count() > 0) {
+            Session::set('intended', '/carrinho');
         }
 
         return $this->view('auth/login', ['title' => 'Entrar'], 'layouts/auth');
@@ -79,13 +81,22 @@ final class AuthController extends Controller
         $home = Auth::user()?->homePath() ?? '/';
         $allowedIntended = $intended !== '' && str_starts_with($intended, '/') && !str_starts_with($intended, '//')
             && (!str_starts_with($intended, '/admin') || $user['role'] === 'admin');
+        if ($allowedIntended) {
+            return $this->redirect($intended);
+        }
+        if ($user['role'] === 'company' && \App\Services\Cart::count() > 0) {
+            return $this->redirect('/carrinho');
+        }
 
-        return $this->redirect($allowedIntended ? $intended : $home);
+        return $this->redirect($home);
     }
 
     public function registerForm(Request $request): Response
     {
         $role = in_array($request->query('tipo'), ['criador', 'empresa'], true) ? (string) $request->query('tipo') : 'empresa';
+        if (\App\Services\Cart::count() > 0) {
+            Session::set('intended', '/carrinho');
+        }
 
         return $this->view('auth/register', ['title' => 'Criar conta', 'role' => $role], 'layouts/auth');
     }
@@ -126,6 +137,9 @@ final class AuthController extends Controller
         Audit::activity($userId, 'register', $role === 'creator' ? 'Criou conta de criador' : 'Criou conta de empresa');
         Auth::login($userId);
         $this->success($role === 'creator' ? 'Conta criada. Complete o perfil e crie o seu primeiro anúncio.' : 'Conta criada. Encontre um criador e envie a sua primeira solicitação.');
+        if ($role === 'company' && \App\Services\Cart::count() > 0) {
+            return $this->redirect('/carrinho');
+        }
 
         return $this->redirect($role === 'creator' ? '/painel' : '/empresa');
     }

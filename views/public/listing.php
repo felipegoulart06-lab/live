@@ -150,7 +150,7 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
     </div>
 
     <aside class="stack product-aside">
-        <form class="buy-box" id="contratar" method="post" action="<?= e(url('/anuncios/' . $listing['slug'] . '/solicitar')) ?>" data-buybox>
+        <form class="buy-box" id="contratar" method="post" action="<?= e(url('/anuncios/' . $listing['slug'] . '/carrinho')) ?>" data-buybox>
             <?= csrf_field() ?>
             <?php if ($packages === []): ?>
                 <p class="muted mb-0">Este anúncio ainda não tem pacotes.</p>
@@ -194,23 +194,19 @@ $unavailable = !empty($listing['unavailable_until']) && $listing['unavailable_un
                     </div>
                     <?php if ($preview): ?>
                         <p class="privacy-note">Na pré-visualização a compra fica desativada.</p>
-                    <?php elseif (!$authUser): ?>
-                        <a class="btn btn-buy btn-block" data-buy-label href="<?= e(url('/login?next=' . rawurlencode('/anuncios/' . $listing['slug'] . '#contratar'))) ?>">Comprar agora <?= e(money($firstPackage['price_cents'])) ?></a>
-                        <p class="privacy-note">Entre com a conta da empresa. O pagamento é no checkout transparente do Mercado Pago.</p>
-                    <?php elseif (!$isCompany): ?>
-                        <p class="privacy-note">Só contas de empresa compram horas. Você está conectado como <?= $authUser->isCreator() ? 'criador' : 'administrador' ?>.</p>
                     <?php else: ?>
-                        <?php if (!empty($unpaidContract)): ?>
-                            <p class="privacy-note"><a href="<?= e(url('/empresa/contratos/' . $unpaidContract['uuid'] . '/checkout')) ?>">Pagar o pedido <?= e($unpaidContract['code']) ?></a> ou monte outro, com mais adicionais.</p>
+                        <?php if (!empty($unpaidContract) && $isCompany): ?>
+                            <a class="btn btn-buy btn-block" href="<?= e(url('/empresa/contratos/' . $unpaidContract['uuid'] . '/checkout')) ?>">Pagar o pedido <?= e($unpaidContract['code']) ?></a>
+                            <p class="privacy-note">Ou monte outro pedido, com mais adicionais.</p>
                         <?php endif; ?>
                         <?php if ($unavailable): ?>
-                            <div class="alert alert-warn mb-0">Agenda fechada até <?= e(fmt_date($listing['unavailable_until'])) ?>. Você ainda pode comprar para depois dessa data.</div>
+                            <div class="alert alert-warn mb-0">Agenda fechada até <?= e(fmt_date($listing['unavailable_until'])) ?>. Você ainda pode colocar no carrinho para depois dessa data.</div>
                         <?php endif; ?>
-                        <button class="btn btn-buy btn-block" type="submit" data-buy-label>Comprar agora <?= e(money($firstPackage['price_cents'])) ?></button>
-                        <p class="privacy-note">Você vai direto ao checkout transparente do Mercado Pago. O criador só grava depois do pagamento.</p>
+                        <button class="btn btn-buy btn-block" type="submit" data-buy-label>Adicionar ao carrinho <?= e(money($firstPackage['price_cents'])) ?></button>
+                        <p class="privacy-note"><?= $authUser ? 'O item vai para o carrinho. O pagamento é no Mercado Pago, com conta de empresa.' : 'Pode montar o pedido agora. Para pagar, entre com a conta da empresa.' ?></p>
                     <?php endif; ?>
                 </div>
-                <?php if ($isCompany && !$preview): ?>
+                <?php if (!$preview): ?>
                     <details class="reveal buy-brief">
                         <summary>Tema e briefing (opcional agora)</summary>
                         <div class="reveal-body">

@@ -21,7 +21,7 @@ final class Settings
         'max_images_per_listing' => ['8', 'business'],
         'require_listing_approval' => ['1', 'business'],
         'maintenance_mode' => ['0', 'general'],
-        'home_hero_title' => ['Contrate horas de vídeo para a sua empresa', 'content'],
+        'home_hero_title' => ['Encontre pessoas para gravar vídeos para sua empresa!', 'content'],
         'home_hero_subtitle' => ['Escolha o anúncio, envie o briefing e pague dentro da plataforma. O tema é de quem contrata; telefone, WhatsApp e redes do criador não aparecem.', 'content'],
         'home_hero_image' => ['images/hero-studio.jpg', 'content'],
     ];

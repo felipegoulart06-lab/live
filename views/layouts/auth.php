@@ -20,6 +20,7 @@
         <span><?= e(brand_name()) ?></span>
     </a>
     <a class="text-link small" href="<?= e(url('/anuncios')) ?>">Ver anúncios</a>
+    <?= view('cart-link', ['cartCount' => $cartCount ?? 0]) ?>
 </header>
 <main class="auth-shell" id="conteudo">
     <div class="auth-card">

@@ -26,6 +26,10 @@ foreach (PageController::SLUGS as $slug) {
     $router->get('/' . $slug, [PageController::class, 'show']);
 }
 
+$router->get('/carrinho', [\App\Controllers\CartController::class, 'show']);
+$router->post('/anuncios/{slug}/carrinho', [\App\Controllers\CartController::class, 'add']);
+$router->post('/carrinho/remover', [\App\Controllers\CartController::class, 'remove']);
+$router->post('/carrinho/fechar', [\App\Controllers\CartController::class, 'checkout'], ['auth']);
 $router->post('/anuncios/{slug}/solicitar', [InteractionController::class, 'requestHours'], ['auth']);
 $router->post('/anuncios/{slug}/mensagem', [InteractionController::class, 'message'], ['auth']);
 $router->post('/favoritos', [InteractionController::class, 'favorite'], ['auth']);
