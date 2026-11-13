@@ -211,7 +211,7 @@ final class Deals
         Audit::activity($companyId, 'request_cancelled', 'Cancelou a solicitação ' . $request['code'], 'request', (int) $request['id']);
     }
 
-    /** Called by the admin today and by a payment gateway webhook later. Idempotent. */
+    /** Called by the admin and by the payment webhook. A repeat call does not pay twice or notify again. */
     public static function confirmPayment(array $contract, ?int $adminId, string $method, ?string $reference, ?string $gateway = null): void
     {
         if (in_array($contract['status'], ['confirmed', 'in_progress', 'completed'], true)) {
@@ -220,15 +220,35 @@ final class Deals
         if ($contract['status'] !== 'awaiting_payment') {
             throw new HttpException(422, 'Este contrato não está aguardando pagamento.');
         }
-        Db::transaction(static function () use ($contract, $adminId, $method, $reference, $gateway): void {
+
+        $confirmed = false;
+        Db::transaction(static function () use ($contract, $adminId, $method, $reference, $gateway, &$confirmed): void {
             $now = now();
-            Db::run(
+            $contractId = (int) $contract['id'];
+            $paid = Db::run(
                 "UPDATE payments SET status = 'paid', method = :m, gateway = COALESCE(:g, gateway), gateway_reference = COALESCE(:r, gateway_reference), paid_at = :now, updated_at = :now2 WHERE contract_id = :c AND status = 'pending'",
-                ['m' => $method, 'g' => $gateway, 'r' => $reference, 'now' => $now, 'now2' => $now, 'c' => (int) $contract['id']]
-            );
-            Db::update('contracts', ['status' => 'confirmed', 'paid_at' => $now, 'confirmed_at' => $now, 'updated_at' => $now], ['id' => (int) $contract['id']]);
-            self::event((int) $contract['id'], $adminId, 'payment_confirmed', $method . ($reference ? ' · ref. ' . $reference : ''));
+                ['m' => $method, 'g' => $gateway, 'r' => $reference, 'now' => $now, 'now2' => $now, 'c' => $contractId]
+            )->rowCount();
+            if ($paid === 0) {
+                $status = (string) Db::value('SELECT status FROM payments WHERE contract_id = :c ORDER BY id DESC LIMIT 1', ['c' => $contractId]);
+                if (!in_array($status, ['paid', 'awaiting_payout', 'paid_out'], true)) {
+                    throw new HttpException(422, 'Este contrato não está aguardando pagamento.');
+                }
+            }
+            $changed = Db::run(
+                "UPDATE contracts SET status = 'confirmed', paid_at = :now, confirmed_at = :now2, updated_at = :now3 WHERE id = :id AND status = 'awaiting_payment'",
+                ['now' => $now, 'now2' => $now, 'now3' => $now, 'id' => $contractId]
+            )->rowCount();
+            if ($changed === 0) {
+                return;
+            }
+            self::event($contractId, $adminId, 'payment_confirmed', $method . ($reference ? ' · ref. ' . $reference : ''));
+            $confirmed = true;
         });
+
+        if (!$confirmed) {
+            return;
+        }
         Notifier::send((int) $contract['creator_id'], 'contract_confirmed', 'Contrato ' . $contract['code'] . ' confirmado', 'O pagamento foi confirmado. Combine os detalhes da gravação.', '/painel/contratos/' . $contract['uuid']);
         Notifier::send((int) $contract['company_id'], 'contract_confirmed', 'Pagamento confirmado: ' . $contract['code'], null, '/empresa/contratos/' . $contract['uuid']);
     }

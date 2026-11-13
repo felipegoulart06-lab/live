@@ -58,7 +58,13 @@ final class Response
             'X-Frame-Options' => 'SAMEORIGIN',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
             'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
+            'X-Permitted-Cross-Domain-Policies' => 'none',
         ];
+        $https = ($_SERVER['HTTPS'] ?? '') === 'on'
+            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+        if ($https) {
+            $this->headers += ['Strict-Transport-Security' => 'max-age=15552000'];
+        }
         if (str_starts_with($this->headers['Content-Type'] ?? '', 'text/html')) {
             $mp = 'https://sdk.mercadopago.com https://www.mercadopago.com https://www.mercadopago.com.br https://*.mercadopago.com https://*.mercadopago.com.br https://api.mercadopago.com https://api.mercadopago.com.br https://events.mercadopago.com https://secure-fields.mercadopago.com';
             $ml = 'https://api.mercadolibre.com https://www.mercadolibre.com https://www.mercadolibre.com.br https://*.mercadolibre.com https://*.mercadolibre.com.br';
@@ -76,6 +82,7 @@ final class Response
                     "worker-src 'self' blob:",
                     "form-action 'self'",
                     "base-uri 'self'",
+                    "object-src 'none'",
                     "frame-ancestors 'self'",
                 ]),
             ];

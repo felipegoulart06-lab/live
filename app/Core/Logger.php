@@ -29,6 +29,7 @@ final class Logger
     private static function write(string $level, string $message, array $context): void
     {
         try {
+            $context = self::redact($context);
             $dir = Paths::storage() . DIRECTORY_SEPARATOR . 'logs';
             if (!is_dir($dir)) {
                 mkdir($dir, 0755, true);
@@ -43,5 +44,21 @@ final class Logger
             file_put_contents($dir . '/app-' . date('Y-m-d') . '.log', $line, FILE_APPEND | LOCK_EX);
         } catch (\Throwable) {
         }
+    }
+
+    /** @param array<string, mixed> $context @return array<string, mixed> */
+    private static function redact(array $context): array
+    {
+        $hidden = ['password', 'password_hash', 'current_password', 'token', 'access_token', 'authorization', 'secret', 'document', 'cvv', 'card_number', 'gateway_payload', '_csrf'];
+        $clean = [];
+        foreach ($context as $key => $value) {
+            if (in_array(strtolower((string) $key), $hidden, true)) {
+                $clean[$key] = '[oculto]';
+                continue;
+            }
+            $clean[$key] = is_array($value) ? self::redact($value) : $value;
+        }
+
+        return $clean;
     }
 }

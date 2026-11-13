@@ -177,6 +177,7 @@ if ($authUser->isAdmin()) {
         </main>
     </div>
 </div>
+<?php if ($authUser->isCompany()): ?><?= view('cart-fab', ['cartCount' => $cartCount ?? 0]) ?><?php endif; ?>
 <div class="toast-region" id="toast-region" aria-live="polite"></div>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
 </body>

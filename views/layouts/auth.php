@@ -28,6 +28,7 @@
         <?= $content ?>
     </div>
 </main>
+<?= view('cart-fab', ['cartCount' => $cartCount ?? 0]) ?>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
 </body>
 </html>

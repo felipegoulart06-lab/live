@@ -12,22 +12,20 @@ final class RateLimiter
         $key = substr(hash('sha256', $key), 0, 48);
         $now = time();
 
-        return Db::transaction(static function () use ($key, $max, $windowSeconds, $now): bool {
-            $row = Db::first('SELECT hits, window_start FROM rate_limits WHERE rate_key = :k', ['k' => $key]);
-            if (!$row || (int) $row['window_start'] < $now - $windowSeconds) {
-                Db::run(
-                    'INSERT INTO rate_limits (rate_key, hits, window_start) VALUES (:k, 1, :now)
-                     ON CONFLICT (rate_key) DO UPDATE SET hits = 1, window_start = excluded.window_start',
-                    ['k' => $key, 'now' => $now]
-                );
+        $cutoff = $now - $windowSeconds;
+        $hits = Db::transaction(static function () use ($key, $now, $cutoff): int {
+            Db::run(
+                'INSERT INTO rate_limits (rate_key, hits, window_start) VALUES (:k, 1, :now)
+                 ON CONFLICT (rate_key) DO UPDATE SET
+                    hits = CASE WHEN rate_limits.window_start < :cutoff THEN 1 ELSE rate_limits.hits + 1 END,
+                    window_start = CASE WHEN rate_limits.window_start < :cutoff THEN :now2 ELSE rate_limits.window_start END',
+                ['k' => $key, 'now' => $now, 'now2' => $now, 'cutoff' => $cutoff]
+            );
 
-                return false;
-            }
-
-            Db::run('UPDATE rate_limits SET hits = hits + 1 WHERE rate_key = :k', ['k' => $key]);
-
-            return (int) $row['hits'] + 1 > $max;
+            return (int) Db::value('SELECT hits FROM rate_limits WHERE rate_key = :k', ['k' => $key]);
         });
+
+        return $hits > $max;
     }
 
     public static function clear(string $key): void

@@ -296,7 +296,12 @@ final class UserController extends AdminController
             ['u' => $uuid]
         );
 
-        return $row ?? throw HttpException::notFound('Usuário não encontrado.');
+        if (!$row) {
+            throw HttpException::notFound('Usuário não encontrado.');
+        }
+        unset($row['password_hash']);
+
+        return $row;
     }
 
     /** Staff admins manage creators and companies; only the master touches other administrators. */

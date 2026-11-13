@@ -50,18 +50,22 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
         <?php if (empty($payPage)): ?>
         <form class="header-search" action="<?= e(url('/anuncios')) ?>" method="get" role="search">
             <label class="sr-only" for="busca-topo">Buscar anúncios</label>
-            <input id="busca-topo" type="search" name="q" value="<?= e($searchQuery) ?>" placeholder="Buscar por tipo de vídeo ou tema">
-            <button class="btn btn-ink" type="submit">Buscar</button>
+            <div class="header-search-field">
+                <input id="busca-topo" type="search" name="q" value="<?= e($searchQuery) ?>" placeholder="Buscar por tipo de vídeo ou tema" enterkeyhint="search">
+                <button class="btn btn-ink" type="submit">Buscar</button>
+            </div>
         </form>
         <nav class="header-actions" aria-label="Principal">
             <a class="text-link hide-md" href="<?= e(url('/anuncios')) ?>">Anúncios</a>
             <?= view('cart-link', ['cartCount' => $cartCount ?? 0]) ?>
-            <?php if ($authUser): ?>
-                <a class="btn btn-ghost hide-md" href="<?= e(url($authUser->homePath())) ?>">Meu painel</a>
-            <?php else: ?>
-                <a class="text-link hide-md" href="<?= e(url('/login')) ?>">Entrar</a>
-                <a class="btn btn-accent hide-md" href="<?= e(url('/cadastro')) ?>">Criar conta</a>
-            <?php endif; ?>
+            <span class="header-account hide-md">
+                <?php if ($authUser): ?>
+                    <a class="btn btn-ghost hide-md" href="<?= e(url($authUser->homePath())) ?>">Meu painel</a>
+                <?php else: ?>
+                    <a class="text-link hide-md" href="<?= e(url('/login')) ?>">Entrar</a>
+                    <a class="btn btn-accent hide-md" href="<?= e(url('/cadastro')) ?>">Criar conta</a>
+                <?php endif; ?>
+            </span>
             <button class="icon-btn only-mobile" type="button" data-drawer="#menu-publico" aria-controls="menu-publico" aria-expanded="false">Menu</button>
         </nav>
         <?php else: ?>
@@ -134,6 +138,7 @@ $searchQuery = is_string($_GET['q'] ?? null) ? mb_substr($_GET['q'], 0, 80) : ''
     </div>
     <p class="footer-copy">© <?= date('Y') ?> <?= e(brand_name()) ?>. Contratação, mensagem e pagamento só pela plataforma.</p>
 </footer>
+<?php if (empty($payPage)): ?><?= view('cart-fab', ['cartCount' => $cartCount ?? 0]) ?><?php endif; ?>
 <div class="toast-region" id="toast-region" aria-live="polite"></div>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
 </body>
